@@ -2,11 +2,12 @@
 
 ## compiling
  In order to compile rmrf you need to invoke
- ´´´make all´´´
+ <code>make all</code>
  This requires the following:
   * an POSIX compatible OS
   * an C++17 compatible compiler
   * libncurses-dev
   * libopenssl
- 
- There is no ./configure nor make install yet.
+  * boost (as long as you plan to run the tests)
+
+ There is no <code>./configure</code> nor <code>make install</code> yet.

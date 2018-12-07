@@ -1,0 +1,15 @@
+.*
+*~
+
+*.ii
+*.o
+*.out
+*.orig
+*.s
+
+*.out.*
+
+bin/
+dep/
+lib/
+obj/

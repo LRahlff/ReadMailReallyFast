@@ -10,9 +10,13 @@ to know some of the internals or like to consult further documentation.
  This requires the following:
   * an POSIX compatible OS
   * an C++17 compatible compiler
-  * libncurses-dev
+  * libncurses-dev (version >= 6)
   * libopenssl
   * boost (as long as you plan to run the tests)
   * lua or python if you plan to use scripting
 
  There is no <code>./configure</code> nor <code>make install</code> yet.
+
+## List of go dependancies
+  * https://github.com/rthornton128/goncurses
+

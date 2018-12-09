@@ -1,6 +1,5 @@
 CFLAGS += -march=native -masm=intel -g -Og -fsanitize=address,signed-integer-overflow,undefined -pedantic -Wall -Wextra -Werror -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wfloat-equal -Wundef -Wpointer-arith -Wcast-align -Wstrict-overflow=5 -Wwrite-strings -Wswitch-default -Wswitch-enum -Wconversion -Wunreachable-code -Winit-self -fno-strict-aliasing -Wno-unknown-warning-option
 CXXFLAGS += ${CFLAGS} -std=c++11 -std=c++17 -Wuseless-cast -Weffc++
-LFLAGS +=
 DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 
 OS = $(shell uname -s)
@@ -43,7 +42,7 @@ MAKEFLAGS += --no-builtin-rules
 all: ${TARGETS}
 
 ${BINDIR}/%: $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o ${OBJECTS}
-	${MKDIR} ${@D} && ${CXX} ${CXXFLAGS} ${LFLAGS} -o $@ $< ${OBJECTS} && touch $@
+	${MKDIR} ${@D} && ${CXX} ${CXXFLAGS} ${LFLAGS} -o $@ $< ${OBJECTS} $(shell [ -r $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ] && cat $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ) && touch $@
 
 ${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CXX} ${CXXFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@

@@ -1,11 +1,7 @@
-#include "../ui/View.h"
-
-namespace rmrf {
+#include "ui/View.h"
 
 int main() {
-	ui::init_ui();
-	ui::destroy_ui();
-    return 0;
-}
+    auto ui_handle = std::make_shared<rmrf::ui::display>();
 
+    return 0;
 }

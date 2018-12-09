@@ -1,12 +1,12 @@
-#ifndef VIEW_H
-#define VIEW_H
+#pragma once
 
-namespace rmrf {
-namespace ui {
+#include <memory>
 
-void init_ui( void );
-void destroy_ui( void );
+namespace rmrf::ui {
+
+struct display : std::enable_shared_from_this<display> {
+    display();
+    ~display();
+};
 
 }
-}
-#endif

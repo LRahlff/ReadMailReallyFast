@@ -1,17 +1,19 @@
-#include <ncurses/cursesw.h>
+#ifdef __UNIX__
+	#include <ncurses/cursesw.h>
+#else
+	#include <ncursesw/ncurses.h>
+#endif
 
-#include "View.h"
+#include "ui/View.h"
 
-namespace rmrf {
-	namespace ui {
+namespace rmrf::ui {
 
-		void init_ui() {
-			initscr();
-		}
+display::display() {
+    initscr();
+}
 
-		void destroy_ui() {
-			endwin();
-		}
+display::~display() {
+    endwin();
+}
 
-	}
 }

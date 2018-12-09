@@ -1,11 +1,13 @@
 CFLAGS += -march=native -masm=intel -g -Og -fsanitize=address,signed-integer-overflow,undefined -pedantic -Wall -Wextra -Werror -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wfloat-equal -Wundef -Wpointer-arith -Wcast-align -Wstrict-overflow=5 -Wwrite-strings -Wswitch-default -Wswitch-enum -Wconversion -Wunreachable-code -Winit-self -fno-strict-aliasing -Wno-unknown-warning-option
 CXXFLAGS += ${CFLAGS} -std=c++11 -std=c++17 -Wuseless-cast -Weffc++
-LFLAGS += -flto
+LFLAGS +=
 DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 
-ifeq "$(shell uname -s)" "Linux"
+OS = $(shell uname -s)
+ifeq "${OS}" "Linux"
 CFLAGS += -flto
 CXXFLAGS += -flto
+LFLAGS += -flto
 endif
 
 CC ?= gcc

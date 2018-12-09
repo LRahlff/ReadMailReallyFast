@@ -41,15 +41,16 @@ MAKEFLAGS += --no-builtin-rules
 .PHONY: all clean
 all: ${TARGETS}
 
-${BINDIR}/%: $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o ${OBJECTS}
+${BINDIR}/%: $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o ${OBJECTS} Makefile ${APPDIR}/%.ldflags
 	${MKDIR} ${@D} && ${CXX} ${CXXFLAGS} ${LFLAGS} -o $@ $< ${OBJECTS} $(shell [ -r $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ] && cat $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ) && touch $@
 
-${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d
+${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CXX} ${CXXFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
-${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d
+${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
+${APPDIR}/%.ldflags: ;
 
 ${DEPDIR}/%.d: ;
 .PRECIOUS: ${DEPDIR}/%.d ${OBJDIR}/%.o

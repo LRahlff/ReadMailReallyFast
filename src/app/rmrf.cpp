@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "ui/View.h"
+#include "ui/view.hpp"
 
 int main() {
     using rmrf::ui::display;

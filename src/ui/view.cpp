@@ -4,7 +4,7 @@
 	#include <ncursesw/ncurses.h>
 #endif
 
-#include "ui/View.h"
+#include "ui/view.hpp"
 
 namespace rmrf::ui {
 

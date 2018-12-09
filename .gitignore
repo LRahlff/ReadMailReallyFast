@@ -9,6 +9,8 @@
 
 *.out.*
 
+.vimrc
+
 bin/
 dep/
 lib/

@@ -3,8 +3,8 @@
 namespace rmrf {
 
 int main() {
-	ui::init_ui();
-	ui::destroy_ui();
+    ui::init_ui();
+    ui::destroy_ui();
     return 0;
 }
 

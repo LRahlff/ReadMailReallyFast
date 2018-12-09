@@ -4,8 +4,8 @@
 namespace rmrf {
 namespace ui {
 
-void init_ui( void );
-void destroy_ui( void );
+void init_ui(void);
+void destroy_ui(void);
 
 }
 }

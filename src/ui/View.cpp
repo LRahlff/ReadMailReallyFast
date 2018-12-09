@@ -3,15 +3,15 @@
 #include "View.h"
 
 namespace rmrf {
-	namespace ui {
+namespace ui {
 
-		void init_ui() {
-			initscr();
-		}
+void init_ui() {
+    initscr();
+}
 
-		void destroy_ui() {
-			endwin();
-		}
+void destroy_ui() {
+    endwin();
+}
 
-	}
+}
 }

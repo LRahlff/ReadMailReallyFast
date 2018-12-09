@@ -1,1 +1,1 @@
--lncursesw
+-lncursesw -pthread

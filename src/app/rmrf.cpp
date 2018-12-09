@@ -1,7 +1,15 @@
+#include <iostream>
+
 #include "ui/View.h"
 
 int main() {
-    auto ui_handle = std::make_shared<rmrf::ui::display>();
+    using rmrf::ui::display;
+
+    auto h_nc = std::make_shared<display>();
+
+    h_nc->sync([](const display::ptr_type &) {
+        std::cout << "Hello World!\n" << std::flush;
+    });
 
     return 0;
 }

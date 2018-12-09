@@ -8,7 +8,7 @@
 
 namespace rmrf::ui {
 
-display::display() {
+display::display() : m{} {
     initscr();
 }
 

@@ -1,4 +1,4 @@
-#include <ncurses/ncursesw.h>
+#include <ncurses/cursesw.h>
 
 #include "View.h"
 

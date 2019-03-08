@@ -1,0 +1,55 @@
+prebuild:
+    stage: build
+    script:
+        - gcc --version
+        - g++ --version
+    tags:
+        - rmrf
+        - rmrfcode
+
+build:bsd:
+    stage: build
+    dependencies:
+        - prebuild
+    script:
+        - gmake
+    artifacts:
+        paths:
+            - bin
+    tags:
+        - rmrf
+        - rmrfcode
+        - freebsd
+
+build:deb:
+    stage: build
+    dependencies:
+        - prebuild
+    script:
+        - make
+        - dpkg-buildpackage -b -us -uc
+    artifacts:
+        paths:
+            - bin
+            - ../rmrf*.deb
+            - ../rmrf*.ddeb
+            - ../rmrf*.changes
+            - ../rmrf*.buildinfo
+    tags:
+        - rmrf
+        - rmrfcode
+        - debian
+
+test:bsd:
+    stage: test
+    dependencies:
+        - build:bsd
+    script:
+        - echo Successfully tested.
+
+test:deb:
+    stage: test
+    dependencies:
+        - build:deb
+    script:
+        - echo Successfully tested.

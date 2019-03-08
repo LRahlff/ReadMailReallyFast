@@ -20,3 +20,9 @@ to know some of the internals or like to consult further documentation.
 ## List of go dependancies
   * https://github.com/rthornton128/goncurses
 
+### List of dependant FreeBSD packages
+  * ncurses
+  * devel/boost-all
+  * lang/lua53
+  * For testing: devel/lua-lunit
+

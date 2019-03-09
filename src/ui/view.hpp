@@ -4,8 +4,15 @@
 #include <memory>
 #include <shared_mutex>
 
+#include "progress_indicator.hpp"
+
 namespace rmrf::ui {
 
+/**
+ * This class is designed to be the first level adapter to curses.
+ * It implements some basic information handling and a registry for
+ * views.
+ */
 class display : public std::enable_shared_from_this<display> {
 public:
     typedef display self_type;
@@ -29,5 +36,13 @@ public:
     }
 
 };
+
+/**
+ * This abstract class implements a view page.
+ */
+virtual class view {
+public:
+    void set_progress_indicator(std::shared_ptr<progress_indicator>);
+}
 
 }

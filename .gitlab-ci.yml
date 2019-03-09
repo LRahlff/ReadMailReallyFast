@@ -1,5 +1,11 @@
+stages:
+    - prebuild
+    - build
+    - testing
+    - deploy
+
 prebuild:
-    stage: build
+    stage: prebuild
     script:
         - gcc --version
         - g++ --version
@@ -41,14 +47,14 @@ build:deb:
         - debian
 
 test:bsd:
-    stage: test
+    stage: testing
     dependencies:
         - build:bsd
     script:
         - echo Successfully tested.
 
 test:deb:
-    stage: test
+    stage: testing
     dependencies:
         - build:deb
     script:

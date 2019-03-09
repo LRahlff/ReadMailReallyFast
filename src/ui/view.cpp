@@ -1,8 +1,4 @@
-#ifdef __UNIX__
-	#include <ncurses/cursesw.h>
-#else
-	#include <ncursesw/ncurses.h>
-#endif
+#include "lib/ncurses/ncurses.hpp"
 
 #include "ui/view.hpp"
 

@@ -10,6 +10,7 @@ namespace rmrf::ui {
  */
 class progress_indicator {
 public:
+	virtual ~progress_indicator();
 	/**
 	 * Query the progress state
 	 * @return The current progress in percent
@@ -29,12 +30,12 @@ public:
 	 * This method shall be used in order to obtain the
 	 * description of the total operation.
 	 */
-	virtual shared_ptr<string> get_operation_description();
+	virtual std::shared_ptr<std::string> get_operation_description();
 	/**
 	 * This method shall be used in order to retrieve a
 	 * description of the current step.
 	 */
-	virtual shared_ptr<string> get_current_job_description();
+	virtual std::shared_ptr<std::string> get_current_job_description();
 };
 
 }

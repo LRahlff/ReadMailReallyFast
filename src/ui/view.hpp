@@ -43,6 +43,7 @@ public:
 class view {
 public:
     virtual void set_progress_indicator(std::shared_ptr<progress_indicator>);
+    virtual ~view();
 };
 
 }

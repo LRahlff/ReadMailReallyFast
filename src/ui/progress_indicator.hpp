@@ -35,6 +35,6 @@ public:
 	 * description of the current step.
 	 */
 	virtual shared_ptr<string> get_current_job_description();
-}
+};
 
 }

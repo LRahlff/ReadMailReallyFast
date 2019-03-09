@@ -40,9 +40,9 @@ public:
 /**
  * This abstract class implements a view page.
  */
-virtual class view {
+class view {
 public:
-    void set_progress_indicator(std::shared_ptr<progress_indicator>);
-}
+    virtual void set_progress_indicator(std::shared_ptr<progress_indicator>);
+};
 
 }

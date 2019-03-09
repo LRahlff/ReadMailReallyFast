@@ -63,10 +63,10 @@ clean:
 	rm -rf ${DEPDIR}
 
 style:
-	-astyle --mode=c --options=none --recursive -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.c
-	-astyle --mode=c --options=none --recursive -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.h
-	-astyle --mode=c --options=none --recursive -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.cpp
-	-astyle --mode=c --options=none --recursive -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.hpp
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.c
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.h
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.cpp
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.hpp
 
 install:
 	${INSTALL} -D -o root -g root -m 700 -t ${DESTDIR}${prefix}/bin ${TARGETS}

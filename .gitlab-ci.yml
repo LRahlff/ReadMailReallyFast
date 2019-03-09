@@ -4,7 +4,7 @@ stages:
     - testing
     - deploy
 
-prebuild:
+prebuild:bsd:
     stage: prebuild
     script:
         - gcc --version
@@ -12,11 +12,22 @@ prebuild:
     tags:
         - rmrf
         - rmrfcode
+        - freebsd
+
+prebuild:deb:
+    stage: prebuild
+    script:
+        - gcc --version
+        - g++ --version
+    tags:
+        - rmrf
+        - rmrfcode
+        - debian
 
 build:bsd:
     stage: build
     dependencies:
-        - prebuild
+        - prebuild:bsd
     script:
         - gmake
     artifacts:
@@ -30,7 +41,7 @@ build:bsd:
 build:deb:
     stage: build
     dependencies:
-        - prebuild
+        - prebuild:deb
     script:
         - make
         - dpkg-buildpackage -b -us -uc

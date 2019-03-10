@@ -5,6 +5,8 @@
 #include <shared_mutex>
 
 #include "progress_indicator.hpp"
+#include "ui_context.hpp"
+#include "event.hpp"
 
 namespace rmrf::ui {
 
@@ -40,9 +42,33 @@ public:
 /**
  * This abstract class implements a view page.
  */
-class view {
+class view : ui_context {
 public:
-    virtual void set_progress_indicator(std::shared_ptr<progress_indicator>);
+    /**
+     * This method will be called when an operation is taking place. It may add
+     * more indicators even when there are others still running due to multi tasking.
+     *
+     * @param progress The progress_indicator from the new running task to add
+     */
+    virtual void add_progress_indicator(std::shared_ptr<progress_indicator> progress);
+
+    /**
+     * This method will be called on a regular basis when the view needs to be updated
+     * due to certain events.
+     *
+     * A view is required to also invoke the update methos on its clients.
+     *
+     * @param display The display to update the view on.
+     * @param event The event that caused the update.
+     * @return True if rerendering is required or otherwise false.
+     */
+    virtual bool update(std::shared_ptr<display> display, std::shared_ptr<event> event);
+    /**
+     * This constructor shall be capable of creating the view.
+     *
+     * @param parent The parent view of this view. This may be null if there is none.
+     */
+    virtual view(std::shared_ptr<view> parent);
     virtual ~view();
 };
 

@@ -43,6 +43,8 @@ public:
  * This abstract class implements a view page.
  */
 class view : ui_context {
+private:
+    std::shared_ptr<view> parent;
 public:
     /**
      * This method will be called when an operation is taking place. It may add
@@ -64,11 +66,17 @@ public:
      */
     virtual bool update(std::shared_ptr<display> display, std::shared_ptr<event> event);
     /**
+     * Use this method in order to retrieve the parent of this view.
+     * @warn Keep in mind that this might be null.
+     * @return The parent
+     */
+    std::shared_ptr<view> get_parent();
+    /**
      * This constructor shall be capable of creating the view.
      *
      * @param parent The parent view of this view. This may be null if there is none.
      */
-    virtual view(std::shared_ptr<view> parent);
+    view(std::shared_ptr<view> parent);
     virtual ~view();
 };
 

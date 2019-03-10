@@ -1,15 +1,13 @@
-#include "lib/ncurses/ncurses.hpp"
-
 #include "ui/view.hpp"
 
 namespace rmrf::ui {
 
-display::display() : m{} {
-    initscr();
+view::view(std::shared_ptr<view> parent) {
+	this->parent = parent;
 }
 
-display::~display() {
-    endwin();
+std::shared_ptr<view> view::get_parent() {
+	return this->parent;
 }
 
 }

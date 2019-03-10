@@ -3,7 +3,7 @@
 #include <memory>
 #include <string>
 
-#include "ui_context.hpp"
+#include "ui/ui_context.hpp"
 
 namespace rmrf::ui {
 

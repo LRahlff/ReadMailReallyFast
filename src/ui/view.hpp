@@ -44,7 +44,7 @@ public:
  */
 class view : ui_context {
 private:
-    std::shared_ptr<view> parent;
+    std::shared_ptr<view> parent_view;
 public:
     /**
      * This method will be called when an operation is taking place. It may add
@@ -65,6 +65,13 @@ public:
      * @return True if rerendering is required or otherwise false.
      */
     virtual bool update(std::shared_ptr<display> display, std::shared_ptr<event> event);
+    /**
+     * This method gets called when events need to be processed that do not
+     * necessarily come from the UI thread.
+     *
+     * @param event The event that caused the update.
+     */
+    virtual void schedule_update(std::shared_ptr<event> event);
     /**
      * Use this method in order to retrieve the parent of this view.
      * @warn Keep in mind that this might be null.

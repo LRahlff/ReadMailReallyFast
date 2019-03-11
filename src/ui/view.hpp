@@ -42,7 +42,7 @@ public:
 /**
  * This abstract class implements a view page.
  */
-class view : ui_context {
+class view : public ui_context {
 private:
     std::shared_ptr<view> parent_view;
 public:

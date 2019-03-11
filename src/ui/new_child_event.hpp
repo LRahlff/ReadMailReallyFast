@@ -7,7 +7,7 @@
 
 namespace rmrf::ui {
 
-class new_child_event : event {
+class new_child_event : public event {
 };
 
 }

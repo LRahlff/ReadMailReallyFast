@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <list>
 
 #include "ui/ui_context.hpp"
 

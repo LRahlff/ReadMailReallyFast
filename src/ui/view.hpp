@@ -45,6 +45,10 @@ public:
 class view : public ui_context {
 private:
     std::shared_ptr<view> parent_view;
+    std::list<std::unique_ptr<view>> child_views;
+private:
+    void add_child(std::unique_ptr<view> child);
+    void remove_child(std::unique_ptr<view> child);
 public:
     /**
      * This method will be called when an operation is taking place. It may add
@@ -84,7 +88,7 @@ public:
      * @param parent The parent view of this view. This may be null if there is none.
      */
     view(std::shared_ptr<view> parent);
-    virtual ~view();
+    ~view();
 };
 
 }

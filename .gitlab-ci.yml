@@ -45,13 +45,11 @@ build:deb:
     script:
         - make
         - dpkg-buildpackage -b -us -uc
+        - mkdir -p deb && cp -t deb ../rmrf*.deb ../rmrf*.changes ../rmrf*.buildinfo
     artifacts:
         paths:
             - bin
-            - ../rmrf*.deb
-            - ../rmrf*.ddeb
-            - ../rmrf*.changes
-            - ../rmrf*.buildinfo
+            - deb
     tags:
         - rmrf
         - rmrfcode
@@ -69,4 +67,5 @@ test:deb:
     dependencies:
         - build:deb
     script:
+        - make lintian
         - echo Successfully tested.

@@ -2,7 +2,7 @@ Source: rmrf
 Section: mail
 Priority: optional
 Maintainer: Benny Baumann <benbe@chaotikum.org>
-Build-Depends: debhelper (>= 10), libncurses-dev (>=6), libssl-dev (>= 1.1.0), libboost-dev, libboost-test-dev, libpython3-dev, liblua5.3-dev
+Build-Depends: debhelper (>= 10), libncurses-dev (>=6) | libncurses5-dev (>=6), libssl-dev (>= 1.1.0), libboost-dev, libboost-test-dev, libpython3-dev, liblua5.3-dev
 Standards-Version: 4.1.2
 Homepage: https://git.chaotikum.org/ReadMailReallyFast
 Vcs-Git: https://git.chaotikum.org/ReadMailReallyFast/code.git

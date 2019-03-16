@@ -2,5 +2,4 @@
 
 namespace rmrf::ui {
 
-
 }

@@ -1,24 +1,23 @@
 #include "ui/event.hpp"
 
 namespace rmrf::ui {
-	event::event(std::shared_ptr<ui_context> sender) {
-		this->event_sender = sender;
-	}
 
-	event::~event() {
-		this->event_sender = nullptr;
-		this->handled = false;
-	}
+event::event(const std::shared_ptr<ui_context> &sender) : event_sender(sender), handled(false) {
+}
 
-	std::shared_ptr<ui_context> event::get_sender() {
-		return this->event_sender;
-	}
+event::~event() {
+}
 
-	bool event::has_been_handled() {
-		return this->handled;
-	}
+std::shared_ptr<ui_context> event::get_sender() const {
+    return this->event_sender;
+}
 
-	void event::set_handled() {
-		this->handled = true;
-	}
+bool event::has_been_handled() const {
+    return this->handled;
+}
+
+void event::set_handled() {
+    this->handled = true;
+}
+
 }

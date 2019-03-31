@@ -11,7 +11,8 @@ namespace rmrf::ui {
  */
 class ui_context {
 public:
-    virtual ~ui_context();
+    virtual ~ui_context() {};
+
     /**
      * Use this method in order to get a fully qualified debug name
      * of the context.

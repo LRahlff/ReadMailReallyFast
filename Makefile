@@ -7,6 +7,9 @@ ifeq "${OS}" "Linux"
 CFLAGS += -flto
 CXXFLAGS += -flto
 LFLAGS += -flto
+else ifeq "${OS}" "FreeBSD"
+CFLAGS += -Wno-error=sign-conversion
+CXXFLAGS += -Wno-error=sign-conversion
 endif
 
 CC ?= gcc

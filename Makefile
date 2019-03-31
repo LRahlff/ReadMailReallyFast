@@ -72,7 +72,8 @@ style:
 	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.hpp
 
 lintian:
-	lintian --pedantic --profile debian --verbose --display-experimental
+	lintian --pedantic --profile debian --verbose --display-experimental --show-overrides
+	@if lintian --pedantic --profile debian --verbose --display-experimental --show-overrides 2>&1 | grep -q '^W:'; then false; fi
 
 install:
 	${INSTALL} -D -o root -g root -m 700 -t ${DESTDIR}${prefix}/bin ${TARGETS}

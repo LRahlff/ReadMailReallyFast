@@ -10,6 +10,7 @@ LFLAGS += -flto
 else ifeq "${OS}" "FreeBSD"
 CFLAGS += -Wno-error=sign-conversion
 CXXFLAGS += -Wno-error=sign-conversion
+LFLAGS += -stdlib=libc++
 endif
 
 CC ?= gcc

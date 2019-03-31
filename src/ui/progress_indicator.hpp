@@ -10,7 +10,8 @@ namespace rmrf::ui {
  */
 class progress_indicator {
 public:
-    virtual ~progress_indicator();
+    progress_indicator() {};
+    virtual ~progress_indicator() {};
     /**
      * Query the progress state
      * @return The current progress in percent

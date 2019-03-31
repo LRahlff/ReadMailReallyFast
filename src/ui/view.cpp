@@ -7,7 +7,7 @@ namespace rmrf::ui {
 
 view::view(const std::shared_ptr<view> &parent) : parent_view{parent}, child_views{} {
     if (this->parent_view) {
-//        this->parent_view->add_child(this->shared_from_this());
+        this->parent_view->add_child(this->shared_from_this());
     }
 }
 
@@ -17,7 +17,7 @@ view::~view() {
 
     // Notify our parent about us being destructed
     if (this->parent_view) {
-//        this->parent_view->remove_child(this->shared_from_this());
+        this->parent_view->remove_child(this->shared_from_this());
     }
 }
 

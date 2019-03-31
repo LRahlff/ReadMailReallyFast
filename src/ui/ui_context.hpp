@@ -11,6 +11,7 @@ namespace rmrf::ui {
  */
 class ui_context {
 public:
+    ui_context() {};
     virtual ~ui_context() {};
 
     /**

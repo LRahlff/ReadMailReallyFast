@@ -14,7 +14,7 @@ namespace rmrf::ui {
 /**
  * This abstract class implements a view page.
  */
-class view : public ui_context, private std::enable_shared_from_this<view> {
+class view : public ui_context, public std::enable_shared_from_this<view> {
 private:
     std::shared_ptr<view> parent_view;
     std::list<std::shared_ptr<view>> child_views;

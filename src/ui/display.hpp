@@ -15,7 +15,7 @@ namespace rmrf::ui {
  * It implements some basic information handling and a registry for
  * views.
  */
-class display : private std::enable_shared_from_this<display> {
+class display : public std::enable_shared_from_this<display> {
 public:
     typedef display self_type;
     typedef std::shared_ptr<self_type> ptr_type;

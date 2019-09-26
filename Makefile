@@ -2,6 +2,8 @@ CFLAGS += -march=native -masm=intel -g -Og -fsanitize=address,signed-integer-ove
 CXXFLAGS += ${CFLAGS} -std=c++11 -std=c++17 -Wuseless-cast -Weffc++ -I/usr/local/include
 DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 
+POLANGS ?= de en
+
 OS = $(shell uname -s)
 ifeq "${OS}" "Linux"
 CFLAGS += -flto
@@ -20,12 +22,23 @@ MKDIR ?= mkdir -p
 INSTALL ?= install
 prefix ?= /usr
 
+XGETTEXT ?= xgettext
+XGETTEXT_FLAGS ?= -k_ -c -s -i --no-wrap --force-po --from-code=UTF-8 --check=ellipsis-unicode --sentence-end=single-space \
+    --foreign-user --package-name=rmrf --package-version=0.1
+MSGINIT ?= msginit
+MSGMERGE ?= msgmerge
+MSGFMT ?= msgfmt
+
 SRCDIR ?= src
 APPDIR ?= ${SRCDIR}/app
 
 BINDIR ?= bin
 DEPDIR ?= dep
 OBJDIR ?= obj
+
+POTDIR ?= po/tpl
+PODIR ?= po/lang
+MODIR ?= po/bin
 
 SOURCES := $(wildcard ${SRCDIR}/*.cpp) $(wildcard ${SRCDIR}/*.c) $(wildcard ${SRCDIR}/**/*.cpp) $(wildcard ${SRCDIR}/**/*.c)
 
@@ -36,13 +49,19 @@ OBJECTS := $(filter-out $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%,${SRCOBJ
 
 TARGETS := $(patsubst $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o,${BINDIR}/%,${APPOBJS})
 
+POTOBJS := $(patsubst ${SRCDIR}/%.c,${POTDIR}/%.pot,$(patsubst ${SRCDIR}/%.cpp,${POTDIR}/%.pot,${SOURCES}))
+POOBJS := $(foreach POLANG,${POLANGS},$(patsubst ${POTDIR}/%.pot,${PODIR}/${POLANG}/%.po,${POTOBJS}))
+MOOBJS := $(patsubst ${PODIR}/%.po,${MODIR}/%.mo,${POOBJS})
+
 CFLAGS += -I${SRCDIR}
 
 MAKEFLAGS += --no-builtin-rules
 .SUFFIXES:
 
-.PHONY: all clean
-all: ${TARGETS}
+.PRECIOUS: ${DEPDIR}/%.d ${OBJDIR}/%.o ${POTOBJS} ${POOBJS}
+
+.PHONY: all clean install lintian style translation
+all: ${TARGETS} translation
 
 ${BINDIR}/%: $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o ${OBJECTS} Makefile ${APPDIR}/%.ldflags
 	${MKDIR} ${@D} && ${CXX} ${CXXFLAGS} ${LFLAGS} -o $@ $< ${OBJECTS} $(shell [ -r $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ] && cat $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ) && touch $@
@@ -53,17 +72,35 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d Makefile
 ${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
+${POTDIR}/%.pot: ${SRCDIR}/%.c
+	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $<
+
+${POTDIR}/%.pot: ${SRCDIR}/%.cpp
+	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $<
+
+$(foreach POFILE,${POLANGS},${PODIR}/${POFILE}/%.po): ${POTDIR}/%.pot
+	for POLANG in ${POLANGS}; do \
+		${MKDIR} ${PODIR}/$${POLANG}/${*D} && \
+		( [ ! -r ${PODIR}/$${POLANG}/$*.po ] && ${MSGINIT} --no-translator --input=${POTDIR}/$*.pot --locale=${POLANG} --output=${PODIR}/$${POLANG}/$*.po ) && \
+		( ${MSGMERGE} --update ${PODIR}/$${POLANG}/$*.po ${POTDIR}/$*.pot ) \
+	done
+
+${MODIR}/%.mo: ${PODIR}/%.po
+	${MKDIR} ${@D} && ${MSGFMT} --output-file=$@ $<
+
 ${APPDIR}/%.ldflags: ;
 
 ${DEPDIR}/%.d: ;
-.PRECIOUS: ${DEPDIR}/%.d ${OBJDIR}/%.o
 
 include $(wildcard $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,${SRCOBJS}))
+
+translation: ${MOOBJS}
 
 clean:
 	rm -rf ${BINDIR}
 	rm -rf ${OBJDIR}
 	rm -rf ${DEPDIR}
+	rm -rf ${MODIR}
 
 style:
 	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.c

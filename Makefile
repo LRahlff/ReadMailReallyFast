@@ -78,12 +78,11 @@ ${POTDIR}/%.pot: ${SRCDIR}/%.c
 ${POTDIR}/%.pot: ${SRCDIR}/%.cpp
 	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $<
 
-$(foreach POFILE,${POLANGS},${PODIR}/${POFILE}/%.po): ${POTDIR}/%.pot
-	for POLANG in ${POLANGS}; do \
-		${MKDIR} ${PODIR}/$${POLANG}/${*D} && \
-		( [ ! -r ${PODIR}/$${POLANG}/$*.po ] && ${MSGINIT} --no-translator --input=${POTDIR}/$*.pot --locale=${POLANG} --output=${PODIR}/$${POLANG}/$*.po ) && \
-		( ${MSGMERGE} --update ${PODIR}/$${POLANG}/$*.po ${POTDIR}/$*.pot ) \
-	done
+define genlangporules
+${PODIR}/$(1)/%.po: ${POTDIR}/%.pot
+	$${MKDIR} $${@D} && ( [ -r $$< ] && $${MSGINIT} --no-translator --input=$$< --locale=$$(patsubst $${PODIR}/%/$$(patsubst $${POTDIR}/%.pot,%.po,$$<),%,$$@) --output=$$@ ) && ( $${MSGMERGE} --update $$@ $$< )
+endef
+$(foreach POLANG,${POLANGS},$(eval $(call genlangporules,$${POLANG})))
 
 ${MODIR}/%.mo: ${PODIR}/%.po
 	${MKDIR} ${@D} && ${MSGFMT} --output-file=$@ $<

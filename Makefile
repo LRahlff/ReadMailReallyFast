@@ -29,6 +29,8 @@ MSGINIT ?= msginit
 MSGMERGE ?= msgmerge
 MSGFMT ?= msgfmt
 
+SED ?= sed
+
 SRCDIR ?= src
 APPDIR ?= ${SRCDIR}/app
 
@@ -73,14 +75,16 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
 ${POTDIR}/%.pot: ${SRCDIR}/%.c
-	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $<
+	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $< && \
+		${SED} --expression='s/charset=CHARSET/charset=UTF-8/g' --in-place $@
 
 ${POTDIR}/%.pot: ${SRCDIR}/%.cpp
-	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $<
+	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $< && \
+		${SED} --expression='s/charset=CHARSET/charset=UTF-8/g' --in-place $@
 
 define genlangporules
 ${PODIR}/$(1)/%.po: ${POTDIR}/%.pot
-	$${MKDIR} $${@D} && ( [ -r $$< ] && $${MSGINIT} --no-translator --input=$$< --locale=$$(patsubst $${PODIR}/%/$$(patsubst $${POTDIR}/%.pot,%.po,$$<),%,$$@) --output=$$@ ) && ( $${MSGMERGE} --update $$@ $$< )
+	$${MKDIR} $${@D} && ( [ -r $$< ] && $${MSGINIT} --no-translator --input=$$< --locale=$$(patsubst $${PODIR}/%/$$(patsubst $${POTDIR}/%.pot,%.po,$$<),%,$$@).UTF-8 --output=$$@ ) && ( $${MSGMERGE} --update $$@ $$< )
 endef
 $(foreach POLANG,${POLANGS},$(eval $(call genlangporules,$${POLANG})))
 

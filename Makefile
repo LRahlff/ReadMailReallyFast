@@ -2,6 +2,8 @@ CFLAGS += -march=native -masm=intel -g -Og -fsanitize=address,signed-integer-ove
 CXXFLAGS += ${CFLAGS} -std=c++11 -std=c++17 -Wuseless-cast -Weffc++ -I/usr/local/include
 DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 
+PODOMAIN ?= rmrf
+POVERSION ?= 0.1
 POLANGS ?= de en
 
 OS = $(shell uname -s)
@@ -24,7 +26,7 @@ prefix ?= /usr
 
 XGETTEXT ?= xgettext
 XGETTEXT_FLAGS ?= -k_ -c -s -i --no-wrap --force-po --from-code=UTF-8 --check=ellipsis-unicode --sentence-end=single-space \
-    --foreign-user --package-name=rmrf --package-version=0.1
+    --foreign-user --package-name=${PODOMAIN} --package-version=${POVERSION}
 MSGINIT ?= msginit
 MSGMERGE ?= msgmerge
 MSGFMT ?= msgfmt
@@ -51,7 +53,8 @@ OBJECTS := $(filter-out $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%,${SRCOBJ
 
 TARGETS := $(patsubst $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o,${BINDIR}/%,${APPOBJS})
 
-POTOBJS := $(patsubst ${SRCDIR}/%.c,${POTDIR}/%.pot,$(patsubst ${SRCDIR}/%.cpp,${POTDIR}/%.pot,${SOURCES}))
+POTSRCS := ${SOURCES} $(wildcard ${SRCDIR}/*.hpp) $(wildcard ${SRCDIR}/*.h) $(wildcard ${SRCDIR}/**/*.hpp) $(wildcard ${SRCDIR}/**/*.h)
+POTOBJS := ${POTDIR}/${PODOMAIN}.pot
 POOBJS := $(foreach POLANG,${POLANGS},$(patsubst ${POTDIR}/%.pot,${PODIR}/${POLANG}/%.po,${POTOBJS}))
 MOOBJS := $(patsubst ${PODIR}/%.po,${MODIR}/%.mo,${POOBJS})
 
@@ -74,22 +77,18 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d Makefile
 ${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
-${POTDIR}/%.pot: ${SRCDIR}/%.c
-	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $< && \
-		${SED} --expression='s/charset=CHARSET/charset=UTF-8/g' --in-place $@
-
-${POTDIR}/%.pot: ${SRCDIR}/%.cpp
-	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $< && \
+${POTDIR}/${PODOMAIN}.pot: ${POTSRCS}
+	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $^ && \
 		${SED} --expression='s/charset=CHARSET/charset=UTF-8/g' --in-place $@
 
 define genlangporules
 ${PODIR}/$(1)/%.po: ${POTDIR}/%.pot
-	$${MKDIR} $${@D} && ( [ -r $$< ] && $${MSGINIT} --no-translator --input=$$< --locale=$$(patsubst $${PODIR}/%/$$(patsubst $${POTDIR}/%.pot,%.po,$$<),%,$$@).UTF-8 --output=$$@ ) && ( $${MSGMERGE} --update $$@ $$< )
+	$${MKDIR} $${@D} && ( [ ! -r $$@ ] && $${MSGINIT} --no-translator --input=$$< --locale=$$(patsubst $${PODIR}/%/$$(patsubst $${POTDIR}/%.pot,%.po,$$<),%,$$@).UTF-8 --output=$$@ ) || ( $${MSGMERGE} --update $$@ $$< ) && touch $$@
 endef
 $(foreach POLANG,${POLANGS},$(eval $(call genlangporules,$${POLANG})))
 
 ${MODIR}/%.mo: ${PODIR}/%.po
-	${MKDIR} ${@D} && ${MSGFMT} --output-file=$@ $<
+	${MKDIR} ${@D} && ${MSGFMT} --statistics --verbose --output-file=$@ $< && touch $@
 
 ${APPDIR}/%.ldflags: ;
 

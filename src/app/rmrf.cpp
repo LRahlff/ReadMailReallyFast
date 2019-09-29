@@ -10,8 +10,8 @@
 int main() {
     using rmrf::ui::display;
 
-    setlocale(LC_ALL, NULL);
-    bindtextdomain("rmrf", "/usr/share/locale/");
+    setlocale(LC_ALL, "");
+    bindtextdomain("rmrf", "/usr/share/locale");
     textdomain("rmrf");
 
     auto h_nc = std::make_shared<display>();

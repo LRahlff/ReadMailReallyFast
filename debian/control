@@ -2,7 +2,7 @@ Source: rmrf
 Section: mail
 Priority: optional
 Maintainer: Benny Baumann <benbe@chaotikum.org>
-Build-Depends: debhelper (>= 10), libncurses-dev (>=6) | libncurses5-dev (>=6), libssl-dev (>= 1.1.0), libboost-dev, libboost-test-dev, libpython3-dev, liblua5.3-dev
+Build-Depends: debhelper (>= 10), libncurses-dev (>=6) | libncurses5-dev (>=6), libssl-dev (>= 1.1.0), libboost-dev, libboost-test-dev, libpython3-dev, liblua5.3-dev, gettext
 Standards-Version: 4.1.2
 Homepage: https://git.chaotikum.org/ReadMailReallyFast
 Vcs-Git: https://git.chaotikum.org/ReadMailReallyFast/code.git
@@ -11,6 +11,6 @@ Vcs-Browser: https://git.chaotikum.org/ReadMailReallyFast/code
 Package: rmrf
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: Read Mail - Really Fast
+Description: ReadMail --Really-Fast
  This tool allows handling of your mails featuring support for
  modern standards and aimed at doing so with maximum performance.

@@ -1,3 +1,5 @@
+#include "ui/display.hpp"
+
 #include "lib/ncurses/ncurses.hpp"
 
 #include "ui/view.hpp"

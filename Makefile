@@ -116,3 +116,6 @@ lintian:
 
 install:
 	${INSTALL} -D -o root -g root -m 700 -t ${DESTDIR}${prefix}/bin ${TARGETS}
+	for POLANG in ${POLANGS}; do \
+		${INSTALL} -D -o root -g root -m 644 -t ${DESTDIR}${prefix}/share/locale/$${POLANG}/LC_MESSAGES/ ${MODIR}/$${POLANG}/*.mo; \
+	done

@@ -44,7 +44,9 @@ POTDIR ?= po/tpl
 PODIR ?= po/lang
 MODIR ?= po/bin
 
-SOURCES := $(wildcard ${SRCDIR}/*.cpp) $(wildcard ${SRCDIR}/*.c) $(wildcard ${SRCDIR}/**/*.cpp) $(wildcard ${SRCDIR}/**/*.c)
+rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
+
+SOURCES := $(call rwildcard,${SRCDIR},*.cpp *.c)
 
 SRCOBJS := $(patsubst ${SRCDIR}/%.c,${OBJDIR}/%.o,$(patsubst ${SRCDIR}/%.cpp,${OBJDIR}/%.o,${SOURCES}))
 
@@ -53,7 +55,7 @@ OBJECTS := $(filter-out $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%,${SRCOBJ
 
 TARGETS := $(patsubst $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o,${BINDIR}/%,${APPOBJS})
 
-POTSRCS := ${SOURCES} $(wildcard ${SRCDIR}/*.hpp) $(wildcard ${SRCDIR}/*.h) $(wildcard ${SRCDIR}/**/*.hpp) $(wildcard ${SRCDIR}/**/*.h)
+POTSRCS := ${SOURCES} $(call rwildcard,${SRCDIR},*.hpp *.h)
 POTOBJS := ${POTDIR}/${PODOMAIN}.pot
 POOBJS := $(foreach POLANG,${POLANGS},$(patsubst ${POTDIR}/%.pot,${PODIR}/${POLANG}/%.po,${POTOBJS}))
 MOOBJS := $(patsubst ${PODIR}/%.po,${MODIR}/%.mo,${POOBJS})

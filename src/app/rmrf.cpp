@@ -1,11 +1,8 @@
-#include <libintl.h>
-#include <locale.h>
-
 #include <iostream>
 
-#include "ui/view.hpp"
+#include "lib/gettext/translations.hpp"
 
-#define _(str) gettext(str)
+#include "ui/view.hpp"
 
 int main() {
     using rmrf::ui::display;

@@ -107,10 +107,10 @@ clean:
 	rm -rf ${MODIR}
 
 style:
-	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.c
-	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.h
-	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.cpp
-	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -j -k1 -W3 -p -U -H ${SRCDIR}/*.hpp
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -H -j -J -k1 -W3 -p -U -xb -y ${SRCDIR}/*.c
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -H -j -J -k1 -W3 -p -U -xb -y ${SRCDIR}/*.h
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -H -j -J -k1 -W3 -p -U -xb -y ${SRCDIR}/*.cpp
+	-astyle --mode=c --options=none --recursive -q -Q -s4 -f -H -j -J -k1 -W3 -p -U -xb -y ${SRCDIR}/*.hpp
 
 lintian:
 	lintian --pedantic --profile debian --verbose --display-experimental --show-overrides

@@ -16,6 +16,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: src/app/rmrf.cpp:24
-msgid "Hello World!\n"
-msgstr "Hello World!\n"
+#: src/app/rmrf.cpp:27
+#, c-format
+msgid "Detected key: %8x (ct=%i)"
+msgstr "Detected key: %8x (ct=%i)"

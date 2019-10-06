@@ -36,6 +36,10 @@ public:
 
         return std::forward<F>(f)(shared_from_this(), std::forward<Args>(args)...);
     }
+
+public:
+    void clear();
+
 };
 
 }

@@ -6,7 +6,7 @@
 msgid   ""
 msgstr  "Project-Id-Version: rmrf 0.1\n"
         "Report-Msgid-Bugs-To: \n"
-        "POT-Creation-Date: 2019-09-29 18:44+0200\n"
+        "POT-Creation-Date: 2019-11-09 17:18+0100\n"
         "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
         "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
         "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,7 +15,11 @@ msgstr  "Project-Id-Version: rmrf 0.1\n"
         "Content-Type: text/plain; charset=UTF-8\n"
         "Content-Transfer-Encoding: 8bit\n"
 
-#: src/app/rmrf.cpp:27
+#: src/app/nc-test.cpp:29
 #, c-format
 msgid   "Detected key: %8x (ct=%i)"
+msgstr  ""
+
+#: src/app/rmrf.cpp:24
+msgid   "Starting RMRF…"
 msgstr  ""

@@ -19,10 +19,20 @@ int main() {
 
     h_nc->clear();
 
-    // Start main loop of RMRF here
-    h_nc->sync([](const display::ptr_type &) {
-        mvprintw(0, 0, _("Starting RMRF…"));
-    });
+    bool loop = true;
+
+    while(loop) {
+        wint_t unichar{0};
+
+        int ct = getch(); //(&unichar); /* read character */
+        h_nc->sync([ct, unichar](const display::ptr_type &) {
+            mvprintw(0, 0, _("Detected key: %8x (ct=%i)"), unichar, ct);
+        });
+
+        if(10 == ct) {
+            loop = false;
+        }
+    }
 
     return 0;
 }

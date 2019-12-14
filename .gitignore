@@ -13,5 +13,5 @@
 
 bin/
 dep/
-lib/
+/lib/
 obj/

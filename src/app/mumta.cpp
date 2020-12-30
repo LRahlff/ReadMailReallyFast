@@ -4,6 +4,7 @@
 #include <thread>
 
 #include "lib/ev/ev.hpp"
+#include "lib/nl/nl.hpp"
 
 #include "mumta/evloop.hpp"
 
@@ -12,6 +13,9 @@
 int main() {
     dctl_status_msg("Checking environment");
     if(!check_version_libev()) {
+        return 1;
+    }
+    if (!check_version_libnl()) {
         return 1;
     }
 

@@ -16,6 +16,9 @@ CFLAGS += -Wno-error=sign-conversion
 CXXFLAGS += -Wno-error=sign-conversion
 endif
 
+CFLAGS += `pkg-config --cflags libnl-3.0`
+CXXFLAGS += `pkg-config --cflags libnl-3.0`
+
 CC ?= gcc
 CXX ?= g++
 

@@ -1,3 +1,4 @@
 `pkg-config --cflags --libs libsystemd`
+`pkg-config --cflags --libs libnl-3.0`
 -lev
 -pthread

@@ -5,6 +5,7 @@
 
 #include "lib/ev/ev.hpp"
 #include "lib/nl/nl.hpp"
+#include "lib/openssl/openssl.hpp"
 
 #include "mumta/evloop.hpp"
 
@@ -16,6 +17,9 @@ int main() {
         return 1;
     }
     if (!check_version_libnl()) {
+        return 1;
+    }
+    if (!check_version_openssl()) {
         return 1;
     }
 

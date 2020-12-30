@@ -8,6 +8,11 @@ void dctl_status_msg(const char* msg) {
 }
 
 ATTR_WEAK
+void dctl_status_err(const char *msg) {
+    (void)msg;
+}
+
+ATTR_WEAK
 void dctl_status_ready() {
 
 }

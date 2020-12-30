@@ -12,6 +12,12 @@ void dctl_status_msg(const char* msg) {
     std::cout << SD_INFO << "STATUS=" << msg << std::endl;
 }
 
+ATTR_NONNULL_ALL
+void dctl_status_err(const char *msg) {
+    sd_notifyf(0, "STATUS=%s", msg);
+    std::cerr << SD_ERR << "STATUS=" << msg << std::endl;
+}
+
 void dctl_status_ready() {
     sd_notify(0, "READY=1");
 }

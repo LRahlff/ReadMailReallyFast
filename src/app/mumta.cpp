@@ -13,12 +13,15 @@
 
 int main() {
     dctl_status_msg("Checking environment");
-    if(!check_version_libev()) {
+
+    if (!check_version_libev()) {
         return 1;
     }
+
     if (!check_version_libnl()) {
         return 1;
     }
+
     if (!check_version_openssl()) {
         return 1;
     }

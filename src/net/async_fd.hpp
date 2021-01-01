@@ -20,11 +20,11 @@ namespace rmrf::net {
         int _fd;
 
     public:
-        inline auto_fd(null_fd nfd = nullfd) noexcept : _fd{nfd} {}
+        inline auto_fd(null_fd nfd = nullfd) noexcept : _fd {nfd} {}
 
-        explicit inline auto_fd(int fd) noexcept : _fd{fd} {}
+        explicit inline auto_fd(int fd) noexcept : _fd {fd} {}
 
-        inline auto_fd(auto_fd &&fd) noexcept : _fd{fd.release()} {}
+        inline auto_fd(auto_fd &&fd) noexcept : _fd {fd.release()} {}
         inline auto_fd &operator=(auto_fd &&fd) noexcept {
             reset(fd.release());
             return *this;
@@ -48,8 +48,7 @@ namespace rmrf::net {
 
         // Close an open file descriptor. Reset the descriptor to -1.
         inline void close() noexcept {
-            if (_fd >= 0)
-            {
+            if (_fd >= 0) {
                 ::close(_fd);
 
                 // If fdclose() failed then no reason to expect it to succeed the next time.
@@ -58,8 +57,9 @@ namespace rmrf::net {
         }
 
         inline void reset(int fd = -1) noexcept {
-            if (_fd >= 0)
+            if (_fd >= 0) {
                 close(); // Don't check for an error as not much we can do here.
+            }
 
             _fd = fd;
         }

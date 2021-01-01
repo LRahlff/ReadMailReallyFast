@@ -6,7 +6,7 @@ ATTR_NONNULL_ALL
 void dctl_status_msg(const char* msg);
 
 ATTR_NONNULL_ALL
-void dctl_status_err(const char *msg);
+void dctl_status_err(const char* msg);
 
 void dctl_status_ready();
 void dctl_status_reload();

@@ -6,7 +6,7 @@
 #include "lib/nccpp/Ncurses.hpp"
 #include "lib/nccpp/Subwindow.hpp"
 
-namespace nccpp{
+namespace nccpp {
 
 inline Window::Window(WINDOW* win) :
     win_{win},
@@ -75,7 +75,7 @@ inline Window::Window(Window const &cp) :
 #endif
 }
 
-inline Window &Window::operator=(Window const &cp){
+inline Window &Window::operator=(Window const &cp) {
     if (this != &cp) {
         Window tmp{cp};
         *this = std::move(tmp);

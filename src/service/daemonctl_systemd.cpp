@@ -13,7 +13,7 @@ void dctl_status_msg(const char* msg) {
 }
 
 ATTR_NONNULL_ALL
-void dctl_status_err(const char *msg) {
+void dctl_status_err(const char* msg) {
     sd_notifyf(0, "STATUS=%s", msg);
     std::cerr << SD_ERR << "STATUS=" << msg << std::endl;
 }

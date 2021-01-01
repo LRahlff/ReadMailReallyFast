@@ -11,7 +11,7 @@ struct stdin_waiter : std::enable_shared_from_this<stdin_waiter>
     ::ev::io e_stdin;
 
     stdin_waiter() : e_stdin{} {
-        fcntl(0, F_SETFL, fcntl(0, F_GETFL)|O_NONBLOCK);
+        fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
         e_stdin.set<stdin_waiter, &stdin_waiter::cb>(this);
         e_stdin.set(0, ::ev::READ);
         e_stdin.start();

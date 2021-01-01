@@ -12,9 +12,9 @@ namespace nccpp {
 
 #include "lib/nccpp/Window.hpp"
 
-namespace nccpp{
+namespace nccpp {
 
-class Ncurses : public Window{
+class Ncurses : public Window {
     friend Ncurses &ncurses();
 public:
     Ncurses(const Ncurses &) = delete;

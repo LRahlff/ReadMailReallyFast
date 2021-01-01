@@ -21,7 +21,7 @@ int main() {
 
     bool loop = true;
 
-    while(loop) {
+    while (loop) {
         wint_t unichar{0};
 
         int ct = getch(); //(&unichar); /* read character */
@@ -29,7 +29,7 @@ int main() {
             mvprintw(0, 0, _("Detected key: %8x (ct=%i)"), unichar, ct);
         });
 
-        if(10 == ct) {
+        if (10 == ct) {
             loop = false;
         }
     }

@@ -1,1 +1,2 @@
--lncursesw -pthread
+`pkg-config --cflags --libs ncursesw tinfo`
+-pthread

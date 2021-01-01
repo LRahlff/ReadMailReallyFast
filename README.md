@@ -12,6 +12,7 @@ to know some of the internals or like to consult further documentation.
   * an C++17 compatible compiler
   * libncurses-dev (version >= 6)
   * libopenssl
+  * libev-dev
   * boost (as long as you plan to run the tests)
   * lua or python if you plan to use scripting
 
@@ -26,3 +27,6 @@ to know some of the internals or like to consult further documentation.
   * lang/lua53
   * For testing: devel/lua-lunit
 
+
+### List of Linux specific dependancies
+  * libnl3

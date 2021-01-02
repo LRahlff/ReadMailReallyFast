@@ -80,7 +80,7 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CXX} ${CXXFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
 ${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
-	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
+	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} -std=c11 -std=c17 ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
 ${POTDIR}/${PODOMAIN}.pot: ${POTSRCS}
 	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $^ && \

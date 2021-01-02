@@ -28,8 +28,6 @@ public:
     async_server_socket(auto_fd &&fd);
     ~async_server_socket();
 
-	void cb_ev(::ev::io &w, int events);
-
 	accept_handler_type get_accept_handler() const;
 	void set_accept_handler(const accept_handler_type &value);
 

@@ -25,16 +25,8 @@ private:
     ev::io io;
 
 public:
-    async_server_socket(auto_fd &&fd) : socket(std::forward(fd)) {
-        // This constructor got a constructed socket as an argument
-        // and forwards it to libev
-        io.set<async_server_socket, &async_server_socket::cb_ev>(this);
-        io.start(this->socket.get(), ev::READ);
-    }
-    ~async_server_socket() {
-        // Remove this socket from libev ...
-    	io.stop();
-    }
+    async_server_socket(auto_fd &&fd);
+    ~async_server_socket();
 
 public:
 	void cb_ev(::ev::io &w, int events);

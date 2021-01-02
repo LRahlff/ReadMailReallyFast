@@ -26,10 +26,10 @@ private:
 
 public:
     async_server_socket(auto_fd &&fd) : socket(std::forward(fd)) {
-    	// This constructor got a constructed socket as an argument
-    	// and forwards it to libev
-    	io.set<async_server_socket, &async_server_socket::get_accept_handler()>(this);
-    	io.start(this->socket, ev::READ);
+        // This constructor got a constructed socket as an argument
+        // and forwards it to libev
+        io.set<async_server_socket, &async_server_socket::cb_ev>(this);
+        io.start(this->socket.get(), ev::READ);
     }
     ~async_server_socket() {
         // Remove this socket from libev ...
@@ -42,6 +42,25 @@ public:
     }
     void set_accept_handler(const accept_handler_type &value) {
         on_accept = value;
+    }
+
+private:
+    void cb_ev(::ev::io &w, int events)
+    {
+        (void)w;
+
+        if (events & ::ev::READ) {
+            auto ah = this->get_accept_handler();
+            // Handle accepting clients
+        }
+
+        if (events & ::ev::WRITE) {
+            // Handle sending data (none for servers)
+        }
+
+        if (events & ::ev::ERROR) {
+            // Handle error conditions
+        }
     }
 };
 

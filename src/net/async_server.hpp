@@ -28,34 +28,14 @@ public:
     async_server_socket(auto_fd &&fd);
     ~async_server_socket();
 
-public:
 	void cb_ev(::ev::io &w, int events);
 
-    accept_handler_type get_accept_handler() const {
-        return on_accept;
-    }
-    void set_accept_handler(const accept_handler_type &value) {
-        on_accept = value;
-    }
+	accept_handler_type get_accept_handler() const;
+	void set_accept_handler(const accept_handler_type &value);
 
 private:
-    void cb_ev(::ev::io &w, int events)
-    {
-        (void)w;
-
-        if (events & ::ev::READ) {
-            auto ah = this->get_accept_handler();
-            // Handle accepting clients
-        }
-
-        if (events & ::ev::WRITE) {
-            // Handle sending data (none for servers)
-        }
-
-        if (events & ::ev::ERROR) {
-            // Handle error conditions
-        }
-    }
+    void cb_ev(::ev::io &w, int events);
 };
+
 
 }

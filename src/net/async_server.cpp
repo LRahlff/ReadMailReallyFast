@@ -12,7 +12,7 @@
 
 namespace rmrf::net::asio {
 
-async_server_socket::async_server_socket(auto_fd&& socket_fd) : socket(std::forward(socket_fd)) {
+async_server_socket::async_server_socket(auto_fd&& socket_fd) : socket(std::forward(socket_fd)), on_accept{}, on_error{}, io{} {
     // This constructor got a constructed socket as an argument
     // and forwards it to libev
     io.set<async_server_socket, &async_server_socket::cb_ev>(this);
@@ -41,6 +41,16 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
 		// Rebind socket if missed iov res else
 		// Log and throw?
 	}
+}
+
+inline void async_server_socket::set_accept_handler(
+		const accept_handler_type &value) {
+	on_accept = value;
+}
+
+
+inline async_server_socket::accept_handler_type async_server_socket::get_accept_handler() const {
+	return on_accept;
 }
 
 }

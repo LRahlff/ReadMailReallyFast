@@ -18,7 +18,7 @@ async_server_socket::async_server_socket(auto_fd&& socket_fd) :
     // This constructor got a constructed socket as an argument
     // and forwards it to libev
     io.set<async_server_socket, &async_server_socket::cb_ev>(this);
-    io.start(this->socket, ::ev::READ);
+    io.start(this->socket.get(), ::ev::READ);
 }
 
 async_server_socket::~async_server_socket() {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <ev++.h>
+
 #include <functional>
 #include <memory>
 
@@ -20,12 +22,18 @@ private:
     accept_handler_type on_accept;
     error_handler_type on_error;
 
+    ev::io io;
+
 public:
     async_server_socket(auto_fd&& fd) : socket(std::forward(fd)) {
-        // Add this socket to libev ...
+    	// This constructor got a constructed socket as an argument
+    	// and forwards it to libev
+    	io.set<async_server_socket, &async_server_socket::get_accept_handler()>(this);
+    	io.start(this->socket, ev::READ);
     }
     ~async_server_socket() {
         // Remove this socket from libev ...
+    	io.stop();
     }
 
 public:

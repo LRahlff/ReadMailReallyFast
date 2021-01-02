@@ -8,9 +8,12 @@
 
 #include "ui/view.hpp"
 
+#include <iostream>
+
 int main() {
     using rmrf::ui::display;
 
+    std::cout << "Hallo" << std::endl;
     setlocale(LC_ALL, "");
     bindtextdomain("rmrf", "/usr/share/locale");
     textdomain("rmrf");

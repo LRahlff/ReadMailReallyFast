@@ -6,7 +6,7 @@
 msgid   ""
 msgstr  "Project-Id-Version: rmrf 0.1\n"
         "Report-Msgid-Bugs-To: \n"
-        "POT-Creation-Date: 2019-11-09 17:18+0100\n"
+        "POT-Creation-Date: 2021-01-02 20:30+0100\n"
         "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
         "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
         "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,6 +20,6 @@ msgstr  "Project-Id-Version: rmrf 0.1\n"
 msgid   "Detected key: %8x (ct=%i)"
 msgstr  ""
 
-#: src/app/rmrf.cpp:24
+#: src/app/rmrf.cpp:27
 msgid   "Starting RMRF…"
 msgstr  ""

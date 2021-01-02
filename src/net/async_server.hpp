@@ -37,6 +37,8 @@ public:
     }
 
 public:
+	void cb_ev(::ev::io &w, int events);
+
     accept_handler_type get_accept_handler() const {
         return on_accept;
     }

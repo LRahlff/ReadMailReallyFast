@@ -7,7 +7,7 @@
 
 #include <net/async_fd.hpp>
 
-namespace rmrf::net::asio {
+namespace rmrf::net {
 
 class async_server_socket : public std::enable_shared_from_this<async_server_socket> {
 public:
@@ -36,6 +36,5 @@ public:
 private:
     void cb_ev(::ev::io &w, int events);
 };
-
 
 }

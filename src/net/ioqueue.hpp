@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <deque>
+#include <utility>
 #include <vector>
 
 namespace rmrf::net {
@@ -16,7 +17,7 @@ namespace rmrf::net {
         iorecord(const void *buf, size_t size) :
             offset{0}, data((const uint8_t *)buf, (const uint8_t *)buf + size) {
             // Nothing special to do here ...
-                                           };
+        };
         iorecord(iorecord&& other) :
             offset(other.offset), data(std::forward(other.data)) {
             // Nothing special to do here ...

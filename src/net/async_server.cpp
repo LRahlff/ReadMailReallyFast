@@ -4,15 +4,17 @@
  *  Created on: 02.01.2021
  *      Author: doralitze
  */
-#include <ev++.h>
-#include <utility>
-
 #include "async_server.hpp"
 
+#include <ev++.h>
 
-namespace rmrf::net::asio {
+#include <utility>
 
-async_server_socket::async_server_socket(auto_fd&& socket_fd) : socket(std::forward(socket_fd)), on_accept{}, on_error{}, io{} {
+
+namespace rmrf::net {
+
+async_server_socket::async_server_socket(auto_fd&& socket_fd) :
+		socket(std::forward(socket_fd)), on_accept{}, on_error{}, io{} {
     // This constructor got a constructed socket as an argument
     // and forwards it to libev
     io.set<async_server_socket, &async_server_socket::cb_ev>(this);
@@ -27,6 +29,13 @@ async_server_socket::~async_server_socket() {
 void async_server_socket::cb_ev(::ev::io &w, int events) {
 	(void) w;
 
+	if (events & ::ev::ERROR) {
+		// Handle errors
+		// Rebind socket if missed iov res else
+		// Log and throw?
+		return;
+	}
+
 	if (events & ::ev::READ) {
 		// Handle incoming clients
 		auto ah = this->get_accept_handler();
@@ -35,12 +44,6 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
 	if (events & ::ev::WRITE) {
 		// Handle sending data which should be none here
 	}
-
-	if (events & ::ev::ERROR) {
-		// Handle errors
-		// Rebind socket if missed iov res else
-		// Log and throw?
-	}
 }
 
 inline void async_server_socket::set_accept_handler(
@@ -48,10 +51,8 @@ inline void async_server_socket::set_accept_handler(
 	on_accept = value;
 }
 
-
 inline async_server_socket::accept_handler_type async_server_socket::get_accept_handler() const {
 	return on_accept;
 }
 
 }
-

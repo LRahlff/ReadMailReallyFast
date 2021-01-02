@@ -22,7 +22,7 @@ private:
     accept_handler_type on_accept;
     error_handler_type on_error;
 
-    ev::io io;
+    ::ev::io io;
 
 public:
     async_server_socket(auto_fd &&fd);

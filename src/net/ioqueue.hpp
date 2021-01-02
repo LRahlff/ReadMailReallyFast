@@ -19,7 +19,7 @@ namespace rmrf::net {
             // Nothing special to do here ...
         };
         iorecord(iorecord&& other) :
-            offset(other.offset), data(std::forward(other.data)) {
+            offset(other.offset), data(std::forward<iorecord>(other.data)) {
             // Nothing special to do here ...
         };
     public:

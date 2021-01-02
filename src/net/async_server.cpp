@@ -14,7 +14,7 @@
 namespace rmrf::net {
 
 async_server_socket::async_server_socket(auto_fd&& socket_fd) :
-		socket(std::forward(socket_fd)), on_accept{}, on_error{}, io{} {
+		socket(std::forward<auto_fd>(socket_fd)), on_accept{}, on_error{}, io{} {
     // This constructor got a constructed socket as an argument
     // and forwards it to libev
     io.set<async_server_socket, &async_server_socket::cb_ev>(this);

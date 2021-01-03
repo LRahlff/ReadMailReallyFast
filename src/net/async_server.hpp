@@ -13,7 +13,7 @@ class async_server_socket : public std::enable_shared_from_this<async_server_soc
 public:
     typedef std::shared_ptr<async_server_socket> self_ptr_type;
 
-    typedef std::function<void(self_ptr_type &, const auto_fd &)> accept_handler_type;
+    typedef std::function<void(self_ptr_type, const auto_fd &)> accept_handler_type;
     typedef std::function<void(self_ptr_type &)> error_handler_type;
 
 private:

@@ -4,7 +4,7 @@
  *  Created on: 02.01.2021
  *      Author: doralitze
  */
-#include "async_server.hpp"
+#include "net/async_server.hpp"
 
 #include <ev++.h>
 
@@ -39,6 +39,7 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
 	if (events & ::ev::READ) {
 		// Handle incoming clients
 		auto ah = this->get_accept_handler();
+		ah(this->shared_from_this(), auto_fd(w.fd));
 	}
 
 	if (events & ::ev::WRITE) {

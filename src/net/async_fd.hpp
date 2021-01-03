@@ -64,6 +64,10 @@ namespace rmrf::net {
             _fd = fd;
         }
 
+        inline bool valid() const {
+            return _fd >= 0;
+        }
+
     };
 
     inline bool operator==(const auto_fd &x, const auto_fd &y) {

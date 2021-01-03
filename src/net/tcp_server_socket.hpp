@@ -20,7 +20,7 @@ class tcp_server_socket : public std::enable_shared_from_this<tcp_server_socket>
 public:
 	typedef std::function<void(tcp_client)> incoming_client_listener_type;
 private:
-	std::shared_ptr<async_server_socket> ss;
+	async_server_socket::self_ptr_type ss;
 	incoming_client_listener_type client_listener;
 	int number_of_connected_clients;
 public:

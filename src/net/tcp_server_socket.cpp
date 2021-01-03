@@ -18,6 +18,9 @@
 #include <sys/stat.h>
 #include <netinet/in.h>
 
+#include "macros.hpp"
+
+
 namespace rmrf::net {
 
 tcp_server_socket::tcp_server_socket(uint16_t port, incoming_client_listener_type client_listener_) :
@@ -54,13 +57,10 @@ tcp_server_socket::tcp_server_socket(uint16_t port, incoming_client_listener_typ
 
 
 // As we're not depending on the actual async server object we need to suppress the warning that we're not using it.
-#ifdef __GNUC__
-	#define UNUSED __attribute__ ((unused))
-#else
-	#define UNUSED
-#endif
 
-void tcp_server_socket::await_raw_socket_incomming(async_server_socket::self_ptr_type ass UNUSED, const auto_fd& socket) {
+void tcp_server_socket::await_raw_socket_incomming(async_server_socket::self_ptr_type ass, const auto_fd& socket) {
+	MARK_UNUSED(ass);
+
 	struct sockaddr_in client_addr;
 	socklen_t client_len = sizeof(client_addr);
 	int client_fd_raw = accept(socket.get(), (struct sockaddr *)&client_addr, &client_len);
@@ -84,7 +84,9 @@ int tcp_server_socket::get_number_of_connected_clients() {
 	return this->number_of_connected_clients;
 }
 
-void tcp_server_socket::client_destructed_cb(tcp_client::exit_status exit_status UNUSED) {
+void tcp_server_socket::client_destructed_cb(tcp_client::exit_status exit_status) {
+	MARK_UNUSED(exit_status);
+
 	this->number_of_connected_clients--;
 }
 

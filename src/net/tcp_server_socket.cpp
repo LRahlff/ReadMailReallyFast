@@ -87,7 +87,7 @@ void tcp_server_socket::await_raw_socket_incomming(async_server_socket::self_ptr
 	this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
 }
 
-int tcp_server_socket::get_number_of_connected_clients() {
+int tcp_server_socket::get_number_of_connected_clients() const {
 	return this->number_of_connected_clients;
 }
 

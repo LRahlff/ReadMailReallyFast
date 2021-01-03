@@ -39,7 +39,7 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
 	if (events & ::ev::READ) {
 		// Handle incoming clients
 		auto ah = this->get_accept_handler();
-		ah(this->shared_from_this(), auto_fd(w.fd));
+		ah(this->shared_from_this(), this->socket);
 	}
 
 	if (events & ::ev::WRITE) {

@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <memory>
 
 #include "net/async_server.hpp"
@@ -22,7 +23,7 @@ public:
 private:
 	async_server_socket::self_ptr_type ss;
 	incoming_client_listener_type client_listener;
-	int number_of_connected_clients;
+	std::atomic_uint32_t number_of_connected_clients;
 public:
 	tcp_server_socket(uint16_t port, incoming_client_listener_type client_listener_);
 	int get_number_of_connected_clients() const;

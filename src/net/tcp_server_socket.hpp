@@ -12,6 +12,7 @@
 
 #include "net/async_server.hpp"
 #include "net/netio_exception.hpp"
+#include "net/socketaddress.hpp"
 #include "net/tcp_client.hpp"
 
 namespace rmrf::net {
@@ -25,7 +26,8 @@ private:
 	incoming_client_listener_type client_listener;
 	std::atomic_uint32_t number_of_connected_clients;
 public:
-	tcp_server_socket(uint16_t port, incoming_client_listener_type client_listener_);
+	tcp_server_socket(const uint16_t port, incoming_client_listener_type client_listener_);
+	tcp_server_socket(socketaddr socket_identifier, incoming_client_listener_type client_listener_);
 	int get_number_of_connected_clients() const;
 private:
 	void await_raw_socket_incomming(async_server_socket::self_ptr_type ass, const auto_fd& socket);

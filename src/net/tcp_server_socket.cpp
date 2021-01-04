@@ -22,48 +22,59 @@
 
 #include "macros.hpp"
 #include "net/socketaddress.hpp"
+#include "net/tcp_client.hpp"
 
 
 namespace rmrf::net {
 
-tcp_server_socket::tcp_server_socket(uint16_t port, incoming_client_listener_type client_listener_) :
-		ss{nullptr}, client_listener(client_listener_), number_of_connected_clients(0) {
-	auto_fd raw_socket_fd{socket(AF_INET6, SOCK_STREAM, 0)};
-	if(!raw_socket_fd.valid()) {
+tcp_server_socket::tcp_server_socket(socketaddr socket_identifier, incoming_client_listener_type client_listener_) :
+	ss{nullptr}, client_listener(client_listener_), number_of_connected_clients(0) {
+	auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
+	if(!socket_fd.valid()) {
 		// TODO implement propper error handling
 		throw netio_exception("Failed to create socket fd.");
 	}
 
-	sockaddr_in6 addr;
-	addr.sin6_family = AF_INET6;
-	addr.sin6_port = htons(port);
-	addr.sin6_addr = IN6ADDR_ANY_INIT;
-	socketaddr sa{addr};
-
-	if (bind(raw_socket_fd.get(), sa.ptr(), sa.size()) != 0) {
+	if (bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()) != 0) {
 		std::string msg = "Failed to bind to all addresses (FIXME)";
-		if (port < 1024) {
-			msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
-		}
 
+		if (socket_identifier.family() == AF_INET6 || socket_identifier.family() == AF_INET) {
+			// TODO find a nice way to check for the port
+			/*
+			 if (port < 1024) {
+			 	 msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
+			 }
+			 */
+		}
 		throw netio_exception(msg);
 	}
 
 	// Append the non blocking flag to the file state of the socket fd.
 	// This might be linux only. We should check that
-	fcntl(raw_socket_fd.get(), F_SETFL, fcntl(raw_socket_fd.get(), F_GETFL, 0) | O_NONBLOCK);
-	if (listen(raw_socket_fd.get(), 5) == -1) {
+	fcntl(socket_fd.get(), F_SETFL, fcntl(socket_fd.get(), F_GETFL, 0) | O_NONBLOCK);
+	if (listen(socket_fd.get(), 5) == -1) {
 		throw netio_exception("Failed to enable listening mode for raw socket");
 	}
 
-	this->ss = std::make_shared<async_server_socket>(std::forward<auto_fd>(raw_socket_fd));
+	this->ss = std::make_shared<async_server_socket>(std::forward<auto_fd>(socket_fd));
 
 	using namespace std::placeholders;
 	this->ss->set_accept_handler(std::bind(&tcp_server_socket::await_raw_socket_incomming, this, _1, _2));
+
 }
 
+static inline socketaddr get_ipv6_socketaddr(const uint16_t port) {
+	sockaddr_in6 addr;
+	addr.sin6_family = AF_INET6;
+	addr.sin6_port = htons(port);
+	addr.sin6_addr = IN6ADDR_ANY_INIT;
+	socketaddr sa{addr};
+	return sa;
+}
 
-// As we're not depending on the actual async server object we need to suppress the warning that we're not using it.
+tcp_server_socket::tcp_server_socket(const uint16_t port, incoming_client_listener_type client_listener_) :
+		tcp_server_socket{get_ipv6_socketaddr(port), client_listener_} { }
+
 
 void tcp_server_socket::await_raw_socket_incomming(async_server_socket::self_ptr_type ass, const auto_fd& socket) {
 	MARK_UNUSED(ass);

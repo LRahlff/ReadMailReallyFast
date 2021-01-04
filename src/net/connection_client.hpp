@@ -15,7 +15,7 @@ namespace rmrf::net {
 
 class connection_client : public std::enable_shared_from_this<connection_client> {
 public:
-	typedef std::function<void(std::string)> incomming_data_cb;
+	typedef std::function<void(std::shared_ptr<std::string>)> incomming_data_cb;
 protected:
 	incomming_data_cb in_data_cb;
 public:

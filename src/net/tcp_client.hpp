@@ -53,6 +53,7 @@ private:
 	std::list<std::shared_ptr<impl::NICBuffer>> write_queue;
 public:
 	tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket_fd, std::string peer_address_, uint16_t port_);
+	tcp_client(const std::string);
 	virtual ~tcp_client();
 	virtual void write_data(std::string data);
 	std::string get_peer_address();

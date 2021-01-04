@@ -56,11 +56,11 @@ void tcp_client::write_data(std::string data) {
 	this->write_queue.push_back(std::make_shared<impl::NICBuffer>(data.c_str(), data.size()));
 }
 
-std::string buffer_to_string(char* buffer, ssize_t bufflen)
+inline std::shared_ptr<std::string> buffer_to_string(char* buffer, ssize_t bufflen)
 {
 	// For some wired reaseon the compiler refuses to find the correct constructor of string
 	// without this extra method.
-    std::string ret(buffer, (int) bufflen);
+    std::shared_ptr<std::string> ret = std::make_shared<std::string>(buffer, (int) bufflen);
     return ret;
 }
 

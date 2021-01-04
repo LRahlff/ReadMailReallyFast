@@ -8,27 +8,114 @@
 #include "net/tcp_client.hpp"
 
 #include <ev++.h>
+#include <fcntl.h>
+#include <netdb.h>
+#include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <utility>
+#include <deque>
 
 #include "net/netio_exception.hpp"
+#include "net/socketaddress.hpp"
 
 namespace rmrf::net {
 
 tcp_client::tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket_fd, std::string peer_address_, uint16_t port_) :
 		connection_client{},
 		destructor_cb(destructor_cb_),
-		socket(std::forward<auto_fd>(socket_fd)),
 		peer_address(peer_address_), port(port_),
+		net_socket(std::forward<auto_fd>(socket_fd)),
 		io{}, write_queue{} {
 	io.set<tcp_client, &tcp_client::cb_ev>(this);
-	io.start(this->socket.get(), ::ev::READ);
+	io.start(this->net_socket.get(), ::ev::READ);
 	// TODO log created client
 }
 
+tcp_client::tcp_client(const std::string peer_address_, std::string service_or_port, int ip_addr_family) :
+		connection_client{},
+		destructor_cb(nullptr),
+		peer_address(peer_address_),
+		port(0),
+		net_socket(nullfd),
+		io{},
+		write_queue{} {
+	this->net_socket = auto_fd(socket(AF_INET, SOCK_STREAM, 0));
+	if(!this->net_socket.valid()) {
+		// TODO implement proper error handling
+		throw netio_exception("Failed to request socket fd from kernel.");
+	}
+
+	if(!(ip_addr_family == AF_UNSPEC || ip_addr_family == AF_INET || ip_addr_family == AF_INET6)) {
+		throw netio_exception("Invalid IP address family.");
+	}
+
+	// TODO build another nice HL structure wrapper for outbound connections
+	int status;
+	struct addrinfo hints;
+	struct addrinfo* servinfo;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = ip_addr_family;
+	hints.ai_socktype = SOCK_STREAM;
+
+	if ((status = getaddrinfo(peer_address_.c_str(), service_or_port.c_str(), &hints, &servinfo)) != 0) {
+	    throw netio_exception("Failed to resolve address '" + peer_address_ + "' with service '" + service_or_port + "': " + gai_strerror(status));
+	}
+
+	std::deque<socketaddr> connection_candidates;
+	for(auto p = servinfo; p != NULL; p = p->ai_next) {
+		if (p->ai_family == AF_INET) {
+			struct sockaddr_in* ipv4 = (struct sockaddr_in *)p->ai_addr;
+			socketaddr sa{ipv4};
+			connection_candidates.push_back(sa);
+		} else if (p->ai_family == AF_INET6) {
+			struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)p->ai_addr;
+			socketaddr sa{ipv6};
+			connection_candidates.push_front(sa);
+		}
+	}
+
+	freeaddrinfo(servinfo);
+	status = 1;
+	do {
+		if(connection_candidates.empty()) {
+			throw netio_exception("Unable to find suitable connection candidate.");
+		}
+		socketaddr socket_identifier = connection_candidates.front();
+		connection_candidates.pop_front();
+		auto_fd socket_candidate{socket(socket_identifier.family(), SOCK_STREAM, 0)};
+		if (socket_candidate.valid()) {
+			if(connect(socket_candidate.get(), socket_identifier.ptr(), socket_identifier.size()) == 0) {
+				status = 0;
+				this->net_socket = std::forward<auto_fd>(socket_candidate);
+				fcntl(this->net_socket.get(), F_SETFL, fcntl(this->net_socket.get(), F_GETFL, 0) | O_NONBLOCK);
+				// Hier bin ich mir nicht sicher, wie ich das am besten mache. Auch mit socketaddr und type cast ist das irgendwie doof.
+				// Das Problem besteht darin, dass erst nach erfolgreichem connect der Port auf dieser Seite bekannt ist.
+				/*
+				struct sockaddr_in sin;
+				if(getsockname(this->net_socket.get(), (struct sockaddr *) &sin, (socklen_t*) &((int) sizeof(sin)))) {
+					this->port = ntohs(sin.sin_port);
+				}*/
+			}
+		}
+		// We don't need to worry about closing broken fd as auto_fd handles this for us
+	} while (status == 1);
+
+
+	io.set<tcp_client, &tcp_client::cb_ev>(this);
+	io.start(this->net_socket.get(), ::ev::READ);
+	//TODO log connected client
+}
+
+tcp_client::tcp_client(const std::string peer_address_, std::string service_or_port) :
+		tcp_client(peer_address_, service_or_port, AF_UNSPEC) { }
+
+tcp_client::tcp_client(const std::string peer_address_, const uint16_t port_) :
+		tcp_client(peer_address_, std::to_string(port_)) {}
+
 tcp_client::~tcp_client() {
-	destructor_cb(EXIT_STATUS_NO_ERROR);
+	if(destructor_cb != nullptr)
+		destructor_cb(EXIT_STATUS_NO_ERROR);
 	io.stop();
 }
 

@@ -45,15 +45,17 @@ public:
 	typedef std::function<void(exit_status)> destructor_cb_type;
 private:
 	const destructor_cb_type destructor_cb;
-	const auto_fd socket;
 	const std::string peer_address;
-	const uint16_t port;
 
+	uint16_t port;
+	auto_fd net_socket;
 	::ev::io io;
 	std::list<std::shared_ptr<impl::NICBuffer>> write_queue;
 public:
 	tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket_fd, std::string peer_address_, uint16_t port_);
-	tcp_client(const std::string);
+	tcp_client(const std::string peer_address_, const uint16_t port_);
+	tcp_client(const std::string peer_address_, std::string service_or_port);
+	tcp_client(const std::string peer_address_, std::string service_or_port, int ip_addr_family);
 	virtual ~tcp_client();
 	virtual void write_data(std::string data);
 	std::string get_peer_address();

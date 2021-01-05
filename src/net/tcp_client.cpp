@@ -40,42 +40,47 @@ tcp_client::tcp_client(const std::string peer_address_, std::string service_or_p
 		net_socket(nullfd),
 		io{},
 		write_queue{} {
-	this->net_socket = auto_fd(socket(AF_INET, SOCK_STREAM, 0));
+	if (!(ip_addr_family == AF_INET || ip_addr_family == AF_INET6)) {
+		throw netio_exception("Invalid IP address family.");
+	}
+
+	this->net_socket = auto_fd(socket(ip_addr_family, SOCK_STREAM, 0));
 	if(!this->net_socket.valid()) {
 		// TODO implement proper error handling
 		throw netio_exception("Failed to request socket fd from kernel.");
 	}
 
-	if(!(ip_addr_family == AF_UNSPEC || ip_addr_family == AF_INET || ip_addr_family == AF_INET6)) {
-		throw netio_exception("Invalid IP address family.");
-	}
-
+	// TODO Extract DNS/service resolution into separate library
 	// TODO build another nice HL structure wrapper for outbound connections
-	int status;
-	struct addrinfo hints;
-	struct addrinfo* servinfo;
-	memset(&hints, 0, sizeof hints);
-	hints.ai_family = ip_addr_family;
-	hints.ai_socktype = SOCK_STREAM;
-
-	if ((status = getaddrinfo(peer_address_.c_str(), service_or_port.c_str(), &hints, &servinfo)) != 0) {
-	    throw netio_exception("Failed to resolve address '" + peer_address_ + "' with service '" + service_or_port + "': " + gai_strerror(status));
-	}
-
 	std::deque<socketaddr> connection_candidates;
-	for(auto p = servinfo; p != NULL; p = p->ai_next) {
-		if (p->ai_family == AF_INET) {
-			struct sockaddr_in* ipv4 = (struct sockaddr_in *)p->ai_addr;
-			socketaddr sa{ipv4};
-			connection_candidates.push_back(sa);
-		} else if (p->ai_family == AF_INET6) {
-			struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)p->ai_addr;
-			socketaddr sa{ipv6};
-			connection_candidates.push_front(sa);
+	int status;
+	{
+		//Reduce scope of locally declared variables
+		//May be candidate for extraction into own method
+		addrinfo hints;
+		addrinfo* servinfo = nullptr;
+		memset(&hints, 0, sizeof hints);
+		hints.ai_family = ip_addr_family;
+		hints.ai_socktype = SOCK_STREAM;
+
+		if ((status = getaddrinfo(peer_address_.c_str(), service_or_port.c_str(), &hints, &servinfo)) != 0) {
+			throw netio_exception("Failed to resolve address '" + peer_address_ + "' with service '" + service_or_port + "': " + gai_strerror(status));
 		}
+
+		// TODO: Prefer IPv6 over IPv4
+		for(auto p = servinfo; p != NULL; p = p->ai_next) {
+			if (p->ai_family == AF_INET) {
+				socketaddr sa{(sockaddr_in *)p->ai_addr};
+				connection_candidates.push_back(sa);
+			} else if (p->ai_family == AF_INET6) {
+				socketaddr sa{(sockaddr_in6 *)p->ai_addr};
+				connection_candidates.push_front(sa);
+			}
+		}
+
+		freeaddrinfo(servinfo);
 	}
 
-	freeaddrinfo(servinfo);
 	status = 1;
 	do {
 		if(connection_candidates.empty()) {
@@ -89,18 +94,33 @@ tcp_client::tcp_client(const std::string peer_address_, std::string service_or_p
 				status = 0;
 				this->net_socket = std::forward<auto_fd>(socket_candidate);
 				fcntl(this->net_socket.get(), F_SETFL, fcntl(this->net_socket.get(), F_GETFL, 0) | O_NONBLOCK);
+
 				// Hier bin ich mir nicht sicher, wie ich das am besten mache. Auch mit socketaddr und type cast ist das irgendwie doof.
 				// Das Problem besteht darin, dass erst nach erfolgreichem connect der Port auf dieser Seite bekannt ist.
-				/*
-				struct sockaddr_in sin;
-				if(getsockname(this->net_socket.get(), (struct sockaddr *) &sin, (socklen_t*) &((int) sizeof(sin)))) {
-					this->port = ntohs(sin.sin_port);
-				}*/
+				socketaddr sa_local;
+				socklen_t sa_local_len = sizeof(sockaddr_storage);
+				if (getsockname(this->net_socket.get(), sa_local.ptr(), &sa_local_len))
+				{
+					// Update length field after the internal structure was modified
+					// TODO: Maybe make this an internal method in socketaddr to update the size
+					sa_local = sa_local.ptr();
+					//The pointer casts are safe due to operator overloading in socketaddr ...
+					switch(sa_local.family()) {
+						case AF_INET:
+							this->port = ntohs(((sockaddr_in*)sa_local)->sin_port);
+							break;
+						case AF_INET6:
+							this->port = ntohs(((sockaddr_in6*)sa_local)->sin6_port);
+							break;
+						default:
+							throw netio_exception("Invalid/unexpected local socket address type");
+					}
+				}
 			}
 		}
+
 		// We don't need to worry about closing broken fd as auto_fd handles this for us
 	} while (status == 1);
-
 
 	io.set<tcp_client, &tcp_client::cb_ev>(this);
 	io.start(this->net_socket.get(), ::ev::READ);

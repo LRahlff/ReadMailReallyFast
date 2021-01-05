@@ -21,7 +21,7 @@ namespace rmrf::test {
 
 	void loopback_connection_client::write_data(const std::string& data) {
 		// TODO fixme
-		//this->send_data_archive.push_back(data_ptr);
+		this->send_data_archive.push_back(data);
 		if(this->mut_send_data_cb != nullptr) {
 			this->mut_send_data_cb(data);
 		}

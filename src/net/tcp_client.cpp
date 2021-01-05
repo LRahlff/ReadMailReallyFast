@@ -195,11 +195,12 @@ void tcp_client::push_write_queue(::ev::io &w) {
 	iorecord buffer = this->write_queue.pop_front();
 	ssize_t written = write(w.fd, buffer.ptr(), buffer.size());
 
-	if (written < 0) {
+	if (written >= 0) {
+		buffer.advance((size_t)written);
+	} else if (errno != EAGAIN) {
 		throw netio_exception("Failed to write latest buffer content.");
 	}
 
-	buffer.advance((size_t)written);
 	this->write_queue.push_front(buffer);
 }
 

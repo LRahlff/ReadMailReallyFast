@@ -32,7 +32,7 @@ tcp_client::tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket
 	// TODO log created client
 }
 
-tcp_client::tcp_client(const std::string peer_address_, std::string service_or_port, int ip_addr_family) :
+tcp_client::tcp_client(const std::string& peer_address_, const std::string& service_or_port, int ip_addr_family) :
 		connection_client{},
 		destructor_cb(nullptr),
 		peer_address(peer_address_),
@@ -127,48 +127,27 @@ tcp_client::tcp_client(const std::string peer_address_, std::string service_or_p
 	//TODO log connected client
 }
 
-tcp_client::tcp_client(const std::string peer_address_, std::string service_or_port) :
+tcp_client::tcp_client(const std::string& peer_address_, const std::string& service_or_port) :
 		tcp_client(peer_address_, service_or_port, AF_UNSPEC) { }
 
-tcp_client::tcp_client(const std::string peer_address_, const uint16_t port_) :
+tcp_client::tcp_client(const std::string& peer_address_, const uint16_t port_) :
 		tcp_client(peer_address_, std::to_string(port_)) {}
 
 tcp_client::~tcp_client() {
 	if(destructor_cb != nullptr)
-		destructor_cb(EXIT_STATUS_NO_ERROR);
+		destructor_cb(exit_status_t::NO_ERROR);
 	io.stop();
 }
 
-namespace impl {
-NICBuffer::NICBuffer(const char* bytes, ssize_t nbytes) : data(nullptr), len(nbytes), pos(0) {
-	data = new char[nbytes];
-	memcpy(data, bytes, nbytes);
-}
-
-NICBuffer::~NICBuffer() {
-	delete [] data;
-}
-
-char* NICBuffer::dpos() {
-	return data + pos;
-}
-
-ssize_t NICBuffer::nbytes() {
-	return len - pos;
-}
-}
-
-void tcp_client::write_data(std::string data) {
+void tcp_client::write_data(const std::string& data) {
 	// Create NICBuffer from data
-	this->write_queue.push_back(std::make_shared<impl::NICBuffer>(data.c_str(), data.size()));
+	this->write_queue.push_back(iorecord{data.c_str(), data.size()});
+	this->io.set(::ev::READ | ::ev::WRITE);
 }
 
-inline std::shared_ptr<std::string> buffer_to_string(char* buffer, ssize_t bufflen)
+inline std::string buffer_to_string(char* buffer, ssize_t bufflen)
 {
-	// For some wired reaseon the compiler refuses to find the correct constructor of string
-	// without this extra method.
-    std::shared_ptr<std::string> ret = std::make_shared<std::string>(buffer, (int) bufflen);
-    return ret;
+    return std::string(buffer, (size_t)bufflen);
 }
 
 void tcp_client::cb_ev(::ev::io &w, int events) {
@@ -208,22 +187,20 @@ void tcp_client::cb_ev(::ev::io &w, int events) {
 }
 
 void tcp_client::push_write_queue(::ev::io &w) {
-	if (this->is_write_queue_empty()) {
+	if (this->write_queue.empty()) {
 		io.set(::ev::READ);
 	    return;
 	}
 
-	std::shared_ptr<impl::NICBuffer> buffer = this->write_queue.front();
-	ssize_t written = write(w.fd, buffer->dpos(), buffer->nbytes());
+	iorecord buffer = this->write_queue.pop_front();
+	ssize_t written = write(w.fd, buffer.ptr(), buffer.size());
 
 	if (written < 0) {
 		throw netio_exception("Failed to write latest buffer content.");
 	}
 
-	buffer->pos += written;
-	if (buffer->nbytes() == 0) {
-		this->write_queue.pop_front();
-	}
+	buffer.advance((size_t)written);
+	this->write_queue.push_front(buffer);
 }
 
 inline std::string tcp_client::get_peer_address() {
@@ -232,10 +209,6 @@ inline std::string tcp_client::get_peer_address() {
 
 inline uint16_t tcp_client::get_port() {
 	return this->port;
-}
-
-inline bool tcp_client::is_write_queue_empty() {
-	return this->write_queue.empty();
 }
 
 }

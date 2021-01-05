@@ -27,7 +27,7 @@
 
 namespace rmrf::net {
 
-tcp_server_socket::tcp_server_socket(socketaddr socket_identifier, incoming_client_listener_type client_listener_) :
+tcp_server_socket::tcp_server_socket(const socketaddr& socket_identifier, incoming_client_listener_type client_listener_) :
 	ss{nullptr}, client_listener(client_listener_), number_of_connected_clients(0) {
 	auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
 	if(!socket_fd.valid()) {
@@ -102,7 +102,7 @@ int tcp_server_socket::get_number_of_connected_clients() const {
 	return this->number_of_connected_clients;
 }
 
-void tcp_server_socket::client_destructed_cb(tcp_client::exit_status exit_status) {
+void tcp_server_socket::client_destructed_cb(exit_status_t exit_status) {
 	MARK_UNUSED(exit_status);
 
 	this->number_of_connected_clients--;

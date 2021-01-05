@@ -15,7 +15,7 @@ namespace rmrf::net {
 
 class connection_client : public std::enable_shared_from_this<connection_client> {
 public:
-	typedef std::function<void(std::shared_ptr<std::string>)> incomming_data_cb;
+	typedef std::function<void(const std::string&)> incomming_data_cb;
 protected:
 	incomming_data_cb in_data_cb;
 public:
@@ -24,7 +24,7 @@ public:
 	/**
 	 * Use this method to send data to the other endpoint.
 	 */
-	virtual void write_data(std::string data) = 0;
+	virtual void write_data(const std::string& data) = 0;
 
 	/**
 	 * Use this method in order to register your callback function that should be

@@ -18,5 +18,3 @@ inline void connection_client::set_incomming_data_callback(const incomming_data_
 }
 
 }
-
-

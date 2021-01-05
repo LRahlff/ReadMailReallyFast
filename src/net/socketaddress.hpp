@@ -10,6 +10,7 @@
 
 #include <functional>
 
+#include "macros.hpp"
 #include "net/netio_exception.hpp"
 
 #ifdef __linux__
@@ -80,17 +81,24 @@ public:
     }
 
     template <typename T>
-    socketaddr &operator=(T *rhs) {
+    socketaddr& operator=(const T *rhs) {
         if (rhs->*(family_map<T>::sa_family_field) != family_map<T>::sa_family) {
             throw netio_exception("Address family mismatch in sockaddr structure.");
         }
 
         memcpy(&addr, rhs, sizeof(T));
         len = sizeof(T);
+
+COMPILER_SUPRESS("-Weffc++");
+        return *this;
+COMPILER_RESTORE("-Weffc++");
     }
 
-    socketaddr &operator=(sockaddr_storage *rhs) {
-        return *this = (sockaddr*)rhs;
+    socketaddr& operator=(const sockaddr_storage *rhs) {
+        *this = (sockaddr*)rhs;
+COMPILER_SUPRESS("-Weffc++");
+        return *this;
+COMPILER_RESTORE("-Weffc++");
     }
 
     socketaddr& operator=(sockaddr *rhs) {

@@ -15,6 +15,15 @@
 #define ATTR_LIKELY(x) __builtin_expect((x), 1)
 #define ATTR_UNLIKELY(x) __builtin_expect((x), 0)
 
+#define COMPILER_PRAGMA(x) _Pragma(#x)
+
+#define COMPILER_SUPRESS(flag)                     \
+    COMPILER_PRAGMA(GCC diagnostic push)           \
+    COMPILER_PRAGMA(GCC diagnostic ignored flag)
+
+#define COMPILER_RESTORE(flag) \
+    COMPILER_PRAGMA(GCC diagnostic pop) // flag
+
 #else
 
 #define ATTR_NONNULL_ALL
@@ -29,6 +38,10 @@
 
 #define ATTR_LIKELY(x) (x)
 #define ATTR_UNLIKELY(x) (x)
+
+#define COMPILER_PRAGMA(x)
+#define COMPILER_SUPRESS(flag)
+#define COMPILER_RESTORE(flag)
 
 #endif
 

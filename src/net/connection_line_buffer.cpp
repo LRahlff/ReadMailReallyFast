@@ -9,7 +9,7 @@
 
 namespace rmrf::net {
 
-static std::string::size_type default_eol_search(
+std::string::size_type default_eol_search(
     const std::string &data,
     std::string::size_type start_position
 ) {
@@ -50,7 +50,10 @@ connection_line_buffer::connection_line_buffer(
     max(max_line_size),
     data("")
 {
-    this->client->set_incomming_data_callback(std::bind(&connection_line_buffer::conn_data_in_cb, this, std::placeholders::_1));
+    this->client->set_incomming_data_callback(
+        [this](const std::string& data_in) {
+            conn_data_in_cb(data_in);
+        });
 }
 
 connection_line_buffer::connection_line_buffer(
@@ -63,26 +66,27 @@ connection_line_buffer::connection_line_buffer(
 
 void connection_line_buffer::conn_data_in_cb(const std::string &data_in) {
 
-    /**
-     * Known limitation: If the last received data ends with '\r' and the next incoming data would start with '\n' there is no way
-     * to detect this as the received message might indeed be a complete one ending with '\r' and one cannot wait for a potential
-     * continuation of said message to arrive.
-     */
+    // Iterate throug the incomming data as long as we find line breaks
+    for (std::string::size_type strpos = 0, nextpos = -1; strpos != std::string::npos; strpos = nextpos++) {
+        // Search for the next line break
+        nextpos = this->search(data_in, strpos);
 
-    std::string::size_type strpos = 0;
-
-    while (strpos != std::string::npos) {
-        std::string::size_type nextpos = this->search(data_in, strpos);
+        // Advance, if the line would be empty
+        if (nextpos == strpos) {
+            nextpos = this->search(data_in, ++strpos);
+        }
 
         if (nextpos == std::string::npos) {
+            // If we didn't find one we store the remaining data in the buffer
             this->data += data_in.substr(strpos, data_in.length() - strpos);
             break;
         } else {
-            this->found_next_line_cb(this->data + data_in.substr(strpos, nextpos - strpos), true);
+            // If we find one we send the buffer plus the incomming data up to the line break to the callback
+            const std::string data_to_send = this->data + data_in.substr(strpos, nextpos - strpos);
+            this->found_next_line_cb(data_to_send, true);
+            // and clear the buffer
             this->data = std::string("");
         }
-
-        strpos = nextpos;
     }
 
     if (this->data.length() > this->max) {

@@ -17,7 +17,7 @@ namespace rmrf::net {
 
 typedef std::function<std::string::size_type(const std::string&, std::string::size_type)> eol_search_t;
 
-static std::string::size_type default_eol_search(const std::string& data, std::string::size_type start_position);
+std::string::size_type default_eol_search(const std::string& data, std::string::size_type start_position);
 
 class connection_line_buffer {
 public:
@@ -31,7 +31,7 @@ private:
     std::string data;
 
 public:
-    connection_line_buffer(std::shared_ptr<connection_client> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size, eol_search_t search_lb = default_eol_search);
+    connection_line_buffer(std::shared_ptr<connection_client> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size, eol_search_t search_lb);
     connection_line_buffer(std::shared_ptr<connection_client> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size);
 
 private:

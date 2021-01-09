@@ -14,6 +14,7 @@ class loopback_connection_client : public rmrf::net::connection_client {
 private:
     const rmrf::net::connection_client::incomming_data_cb send_data_cb;
     std::vector<std::string> data_archive;
+    const bool echo_data_transfer;
 
 public:
     /**
@@ -21,11 +22,13 @@ public:
      * send data.
      */
     loopback_connection_client(
-        rmrf::net::connection_client::incomming_data_cb send_data_cb_
+        rmrf::net::connection_client::incomming_data_cb send_data_cb_,
+        bool echo_data
     ) :
         rmrf::net::connection_client{},
         send_data_cb(send_data_cb_),
-        data_archive{}
+        data_archive{},
+        echo_data_transfer(echo_data)
     {
         // Does nothing special
     }
@@ -43,7 +46,12 @@ public:
      */
     virtual void write_data(const std::string& data) {
         // TODO fixme
+        if (this->echo_data_transfer) {
+            std::cout << "<-- " << data << std::endl;
+        }
+
         this->data_archive.push_back(data);
+
         if (this->send_data_cb) {
             this->send_data_cb(data);
         }
@@ -56,6 +64,10 @@ public:
      * @param data The data to send.
      */
     void send_data_to_incomming_data_cb(const std::string& data) {
+        if (this->echo_data_transfer) {
+            std::cout << "--> " << data << std::endl;
+        }
+
         if (this->in_data_cb) {
             this->in_data_cb(data);
         }
@@ -66,6 +78,10 @@ public:
      */
     std::vector<std::string> get_send_data() {
         return this->data_archive;
+    }
+
+    void clear_sent_data() {
+        this->data_archive.clear();
     }
 };
 

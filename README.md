@@ -13,7 +13,7 @@ to know some of the internals or like to consult further documentation.
   * libncurses-dev (version >= 6)
   * libopenssl
   * libev-dev
-  * boost (as long as you plan to run the tests)
+  * boost (i.e. libboost-test-dev if you plan to run the tests)
   * lua or python if you plan to use scripting
 
  There is no <code>./configure</code> nor <code>make install</code> yet.

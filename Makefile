@@ -5,6 +5,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 CFLAGS_DEBUG = -g -Og
 CFLAGS_RELEASE = -O3 -msse2 -mavx
 
+# TODO: introduce configure script
 CFLAGS += ${CFLAGS_DEBUG}
 
 PODOMAIN ?= rmrf
@@ -54,6 +55,10 @@ POTDIR ?= po/tpl
 PODIR ?= po/lang
 MODIR ?= po/bin
 
+TESTDIR ?= test
+TESTBINDIR ?= bin/test
+TESTOBJDIR ?= obj/test
+
 rwildcard = $(foreach d,$(wildcard $1*),$(call rwildcard,$d/,$2) $(filter $(subst *,%,$2),$d))
 
 SOURCES := $(call rwildcard,${SRCDIR},*.cpp *.c)
@@ -64,6 +69,10 @@ APPOBJS := $(filter $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%,${SRCOBJS})
 OBJECTS := $(filter-out $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%,${SRCOBJS})
 
 TARGETS := $(patsubst $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o,${BINDIR}/%,${APPOBJS})
+
+TEST_SOURCES := $(call rwildcard,${TESTDIR},*.cpp *.c)
+TEST_SRCOBJS := $(patsubst ${TESTDIR}/%.c,${TESTOBJDIR}/%.o,$(patsubst ${TESTDIR}/%.cpp,${TESTOBJDIR}/%.o,${TEST_SOURCES}))
+TEST_TARGETS := $(patsubst ${TESTOBJDIR}/%.o,${TESTBINDIR}/%,${TEST_SRCOBJS})
 
 POTSRCS := ${SOURCES} $(call rwildcard,${SRCDIR},*.hpp *.h)
 POTOBJS := ${POTDIR}/${PODOMAIN}.pot
@@ -77,8 +86,12 @@ MAKEFLAGS += --no-builtin-rules
 
 .PRECIOUS: ${DEPDIR}/%.d ${OBJDIR}/%.o ${POTOBJS} ${POOBJS}
 
-.PHONY: all clean install lintian style translation
-all: ${TARGETS} translation
+.PHONY: all build clean install lintian style test translation
+all: build translation
+	echo "Test targets:"
+	echo ${TEST_TARGETS}
+
+build: ${TARGETS}
 
 ${BINDIR}/%: $(patsubst ${SRCDIR}/%,${OBJDIR}/%,${APPDIR})/%.o ${OBJECTS} Makefile ${APPDIR}/%.ldflags
 	${MKDIR} ${@D} && ${CXX} ${CXXFLAGS} ${LFLAGS} -o $@ $< ${OBJECTS} $(shell [ -r $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ] && cat $(patsubst ${OBJDIR}/%.o,${SRCDIR}/%.ldflags,$<) ) && touch $@
@@ -88,6 +101,18 @@ ${OBJDIR}/%.o: ${SRCDIR}/%.cpp ${DEPDIR}/%.d Makefile
 
 ${OBJDIR}/%.o: ${SRCDIR}/%.c ${DEPDIR}/%.d Makefile
 	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${OBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} -std=c11 -std=c17 ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
+
+${TESTDIR}/%.ldflags:
+	touch $@
+
+${TESTBINDIR}/%: ${TESTOBJDIR}/%.o ${OBJECTS} Makefile ${TESTDIR}/%.ldflags
+	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${TESTOBJDIR}/%,${DEPDIR}/%,${@D}) && ${CXX} ${CXXFLAGS} ${LFLAGS} -Itest -o $@ $< ${OBJECTS} $(shell [ -r $(patsubst ${TESTOBJDIR}/%.o,${TESTDIR}/%.ldflags,$<) ] && cat $(patsubst ${TESTOBJDIR}/%.o,${TESTDIR}/%.ldflags,$<) ) && touch $@
+
+${TESTOBJDIR}/%.o: ${TESTDIR}/%.cpp ${DEPDIR}/%.d ${DEPDIR}/test Makefile
+	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${TESTOBJDIR}/%,${DEPDIR}/%,${@D}) && ${CXX} -I${TESTDIR} ${CXXFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
+
+${TESTOBJDIR}/%.o: ${TESTDIR}/%.c ${DEPDIR}/%.d ${DEPDIR}/test Makefile
+	${MKDIR} ${@D} && ${MKDIR} $(patsubst ${TESTOBJDIR}/%,${DEPDIR}/%,${@D}) && ${CC} -I${TESTDIR} -std=c11 -std=c17 ${CFLAGS} ${DEPFLAGS} ${LFLAGS} -o $@ -c $< && touch $@
 
 ${POTDIR}/${PODOMAIN}.pot: ${POTSRCS}
 	${MKDIR} ${@D} && ${XGETTEXT} ${XGETTEXT_FLAGS} $( [ -r $@ ] && echo -- -j ) -o $@ $^ && \
@@ -105,6 +130,9 @@ ${MODIR}/%.mo: ${PODIR}/%.po
 ${APPDIR}/%.ldflags: ;
 
 ${DEPDIR}/%.d: ;
+
+${DEPDIR}/test:
+	${MKDIR} ${DEPDIR}/test
 
 include $(wildcard $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,${SRCOBJS}))
 
@@ -125,6 +153,12 @@ style:
 lintian:
 	lintian --pedantic --profile debian --verbose --display-experimental --show-overrides
 	@if lintian --pedantic --profile debian --verbose --display-experimental --show-overrides 2>&1 | grep -q '^W:'; then false; fi
+
+test: ${TEST_TARGETS}
+	for a in ${TEST_TARGETS}; do \
+		echo $$a; \
+		$$a; \
+	done
 
 install:
 	${INSTALL} -D -o root -g root -m 700 -t ${DESTDIR}${prefix}/bin ${TARGETS}

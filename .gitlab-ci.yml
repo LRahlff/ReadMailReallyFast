@@ -60,6 +60,7 @@ test:bsd:
     dependencies:
         - build:bsd
     script:
+        - make test
         - echo Successfully tested.
 
 test:deb:
@@ -68,4 +69,5 @@ test:deb:
         - build:deb
     script:
         - make lintian
+        - make test
         - echo Successfully tested.

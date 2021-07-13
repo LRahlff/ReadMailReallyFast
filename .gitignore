@@ -11,6 +11,7 @@
 
 .vimrc
 *.kdev4
+*.project
 
 bin/
 dep/

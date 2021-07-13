@@ -220,6 +220,7 @@ void tcp_client::push_write_queue(::ev::io &w) {
         return;
     }
 
+    this->data_write_active = true;
     iorecord buffer = this->write_queue.pop_front();
     ssize_t written = write(w.fd, buffer.ptr(), buffer.size());
 
@@ -230,6 +231,7 @@ void tcp_client::push_write_queue(::ev::io &w) {
     }
 
     this->write_queue.push_front(buffer);
+    this->data_write_active = false;
 }
 
 inline std::string tcp_client::get_peer_address() {
@@ -238,6 +240,10 @@ inline std::string tcp_client::get_peer_address() {
 
 inline uint16_t tcp_client::get_port() {
     return this->port;
+}
+
+inline bool tcp_client::is_write_queue_empty() {
+    return this->write_queue.empty() && !this->data_write_active;
 }
 
 }

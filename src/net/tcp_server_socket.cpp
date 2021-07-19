@@ -33,7 +33,9 @@ tcp_server_socket::tcp_server_socket(
 ) :
     ss{nullptr},
     client_listener(client_listener_),
-    number_of_connected_clients(0)
+    overflow_client_listener(nullptr),
+    number_of_connected_clients(0),
+    max_number_of_simulataneusly_allowed_clients(0)
 {
     auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
 
@@ -108,12 +110,18 @@ void tcp_server_socket::await_raw_socket_incomming(
 
     // Generate client object from fd and announce it
     this->number_of_connected_clients++;
-
     using namespace std::placeholders;
-    this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
+
+    if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
+        this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
+    } else {
+        if (this->overflow_client_listener != nullptr) {
+            this->overflow_client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
+        }
+    }
 }
 
-int tcp_server_socket::get_number_of_connected_clients() const {
+unsigned int tcp_server_socket::get_number_of_connected_clients() const {
     return this->number_of_connected_clients;
 }
 
@@ -121,6 +129,14 @@ void tcp_server_socket::client_destructed_cb(exit_status_t exit_status) {
     MARK_UNUSED(exit_status);
 
     this->number_of_connected_clients--;
+}
+
+void tcp_server_socket::set_client_overflow_handler(incoming_client_listener_type overflow_client_listener_) {
+    this->overflow_client_listener = overflow_client_listener_;
+}
+
+void tcp_server_socket::set_maximum_concurrent_connections(unsigned int max_connections) {
+    this->max_number_of_simulataneusly_allowed_clients = max_connections;
 }
 
 }

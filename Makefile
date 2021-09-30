@@ -5,6 +5,7 @@ DEPFLAGS = -MT $@ -MMD -MP -MF $(patsubst ${OBJDIR}/%.o,${DEPDIR}/%.d,$@)
 PODOMAIN ?= rmrf
 POVERSION ?= 0.1
 POLANGS ?= de en
+PKG_TOOL = pkg-config
 
 OS = $(shell uname -s)
 ifeq "${OS}" "Linux"
@@ -14,10 +15,11 @@ LFLAGS += -flto
 else ifeq "${OS}" "FreeBSD"
 CFLAGS += -Wno-error=sign-conversion
 CXXFLAGS += -Wno-error=sign-conversion
+PKG_TOOL = pkgconf
 endif
 
-CFLAGS += `pkg-config --cflags libnl-3.0`
-CXXFLAGS += `pkg-config --cflags libnl-3.0`
+CFLAGS += `${PKG_TOOL} --cflags libnl-3.0`
+CXXFLAGS += `${PKG_TOOL} --cflags libnl-3.0`
 
 CC ?= gcc
 CXX ?= g++

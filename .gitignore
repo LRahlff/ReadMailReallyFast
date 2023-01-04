@@ -10,6 +10,7 @@
 *.out.*
 
 .vimrc
+*.kdev4
 
 bin/
 dep/

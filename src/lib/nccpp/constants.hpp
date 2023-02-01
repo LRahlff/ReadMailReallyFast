@@ -163,7 +163,10 @@ int constexpr suspend{KEY_SUSPEND};
 int constexpr undo{KEY_UNDO};
 int constexpr mouse{KEY_MOUSE};
 int constexpr resize{KEY_RESIZE};
+
+#ifdef KEY_EVENT
 int constexpr event{KEY_EVENT};
+#endif
 
 } // namespace keys
 

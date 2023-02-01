@@ -58,7 +58,7 @@ private:
     socklen_t len;
 
 public:
-    socketaddr();
+    socketaddr() = default;
 
     template <typename T, typename std::enable_if<has_field<T>::value, T>::type * = nullptr>
     explicit socketaddr(T *other) : addr{}, len{} {

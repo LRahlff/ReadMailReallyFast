@@ -6,15 +6,3 @@
  */
 
 #include "net/connection_client.hpp"
-
-namespace rmrf::net {
-
-connection_client::connection_client() : in_data_cb{} {
-    // Nothing to do here
-}
-
-inline void connection_client::set_incomming_data_callback(const incomming_data_cb &cb) {
-    this->in_data_cb = cb;
-}
-
-}

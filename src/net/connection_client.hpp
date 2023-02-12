@@ -21,7 +21,7 @@ protected:
     incomming_data_cb in_data_cb;
 
 public:
-    connection_client();
+    connection_client() : in_data_cb{} {};
 
     /**
      * Use this method to send data to the other endpoint.
@@ -33,7 +33,9 @@ public:
      * called when the client got data to process.
      * @param cb The callback function to register [void(std::string data)]
      */
-    void set_incomming_data_callback(const incomming_data_cb &cb);
+    inline void set_incomming_data_callback(const incomming_data_cb &cb) {
+        this->in_data_cb = cb;
+    };
 };
 
 }

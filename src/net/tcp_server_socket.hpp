@@ -57,6 +57,16 @@ public:
     tcp_server_socket(const socketaddr& socket_identifier, incoming_client_listener_type client_listener_);
 
     /**
+     * This constructor accepts an interface address and a port to bind to and the client listener that should be called when clients arrive.
+     * This constructor tries to guess the correct address family and interface.
+     * @brief Construct a TCP server that listens the specified interface
+     * @param interface_description The interface to bind to
+     * @param port The port to bind to
+     * @param client_listener_ The client listener to call when a client arrives.
+     */
+    tcp_server_socket(const std::string& interface_description, const uint16_t port, incoming_client_listener_type client_listener_);
+
+    /**
      * This method provides you with the current number of connected clients. When a client
      * disconnects this number will be reduced. When a new client arrives this number will be incremented.
      * @brief Get the current number of connected clients.

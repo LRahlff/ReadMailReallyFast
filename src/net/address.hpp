@@ -310,8 +310,8 @@ static constexpr void inet6_array_to_saddr(std::array<uint16_t, 8> const &ip6_co
     for (size_t i = 0; i < ip6_comps.size(); i++) {
         uint16_t hexlet = ip6_comps[i];
 
-        in6.s6_addr[i * 2] = hexlet >> 8;
-        in6.s6_addr[i * 2 + 1] = hexlet & 0xff;
+        in6.s6_addr[i * 2] = static_cast<uint8_t>(hexlet >> 8);
+        in6.s6_addr[i * 2 + 1] = static_cast<uint8_t>(hexlet & 0xff);
     }
 }
 

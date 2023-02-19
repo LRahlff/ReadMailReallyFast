@@ -74,6 +74,14 @@ public:
         len = sizeof(T);
     }
 
+    explicit socketaddr(const sockaddr_storage *other) : addr{}, len{} {
+        *this = other;
+    }
+
+    explicit socketaddr(const sockaddr_storage &other) : addr{}, len{} {
+        *this = &other;
+    }
+
     template <typename T, typename std::enable_if<has_field<T>::value, T>::type * = nullptr>
     explicit socketaddr(const T& other) : addr{}, len{} {
         if (other.*(family_map<T>::sa_family_field) != family_map<T>::sa_family) {

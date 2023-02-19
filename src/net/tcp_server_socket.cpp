@@ -97,9 +97,10 @@ void tcp_server_socket::await_raw_socket_incomming(
 ) {
     MARK_UNUSED(ass);
 
-    struct sockaddr_in client_addr;
+    struct sockaddr_storage client_addr;
     socklen_t client_len = sizeof(client_addr);
     int client_fd_raw = accept(socket.get(), (struct sockaddr*)&client_addr, &client_len);
+    socketaddr address{client_addr};
 
     if (client_fd_raw < 0) {
         throw netio_exception("Unable to bind incoming client");
@@ -112,9 +113,6 @@ void tcp_server_socket::await_raw_socket_incomming(
     ) {
         throw netio_exception("Failed to set socket mode. fcntl resulted in error:" + std::to_string(errno));
     }
-
-    const std::string address = inet_ntoa(client_addr.sin_addr);
-    const uint16_t port = ntohs(client_addr.sin_port);
 
     // Generate client object from fd and announce it
     this->number_of_connected_clients++;
@@ -129,10 +127,10 @@ void tcp_server_socket::await_raw_socket_incomming(
     }
 
     if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
-        this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
+        this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address));
     } else {
         if (this->overflow_client_listener != nullptr) {
-            this->overflow_client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));
+            this->overflow_client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address));
         }
     }
 }

@@ -226,7 +226,7 @@ void tcp_client::push_write_queue(::ev::io &w) {
 
     if (written >= 0) {
         buffer.advance((size_t)written);
-    } else if (errno != EAGAIN) {
+    } else if (EAGAIN_WRAPPER) {
         throw netio_exception("Failed to write latest buffer content.");
     }
 

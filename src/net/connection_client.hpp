@@ -11,6 +11,12 @@
 #include <memory>
 #include <string>
 
+#if EAGAIN != EWOULDBLOCK
+    #define EAGAIN_WRAPPER ((errno != EAGAIN) && (errno != EWOULDBLOCK))
+#else
+    #define EAGAIN_WRAPPER (errno != EAGAIN)
+#endif
+
 namespace rmrf::net {
 
 template<class client>

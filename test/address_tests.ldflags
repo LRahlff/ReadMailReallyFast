@@ -1,0 +1,6 @@
+`pkg-config --cflags --libs libsystemd`
+`pkg-config --cflags --libs ncursesw tinfo`
+`pkg-config --cflags --libs libnl-3.0`
+`pkg-config --cflags --libs libssl libcrypto`
+-pthread
+-lev

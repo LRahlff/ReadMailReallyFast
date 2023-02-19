@@ -216,7 +216,7 @@ void tcp_client::cb_ev(::ev::io &w, int events) {
         ssize_t n_read_bytes = recv(w.fd, buffer, sizeof(buffer), 0);
 
         if (n_read_bytes < 0) {
-            throw netio_exception("Failed to read from network socket.");
+            throw netio_exception("Failed to read from network socket in TCP client.");
         }
 
         if (n_read_bytes == 0) {

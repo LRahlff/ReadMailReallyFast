@@ -27,7 +27,7 @@ namespace rmrf::net {
  */
 class tcp_server_socket : public std::enable_shared_from_this<tcp_server_socket>{
 public:
-    typedef std::function<void(tcp_client)> incoming_client_listener_type;
+    typedef std::function<void(std::shared_ptr<tcp_client>)> incoming_client_listener_type;
 
 private:
     async_server_socket::self_ptr_type ss;

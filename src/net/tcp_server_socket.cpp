@@ -126,12 +126,22 @@ void tcp_server_socket::await_raw_socket_incomming(
 #endif
     }
 
-    if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
-        this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address));
-    } else {
-        if (this->overflow_client_listener != nullptr) {
-            this->overflow_client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address));
+    auto weak_this = this->weak_from_this();
+    tcp_client::destructor_cb_type cb = [weak_this](exit_status_t status) {
+        auto ref_this = weak_this.lock();
+
+        if (!ref_this) {
+            return;
         }
+
+        ref_this->client_destructed_cb(status);
+    };
+    auto client = std::make_shared<tcp_client>(cb, auto_fd(client_fd_raw), address);
+
+    if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
+        this->client_listener(client);
+    } else if (this->overflow_client_listener != nullptr) {
+        this->overflow_client_listener(client);
     }
 }
 

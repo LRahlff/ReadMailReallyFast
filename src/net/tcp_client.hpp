@@ -18,6 +18,7 @@
 #include "net/async_fd.hpp"
 #include "net/connection_client.hpp"
 #include "net/ioqueue.hpp"
+#include "net/socketaddress.hpp"
 
 namespace rmrf::net {
 
@@ -41,7 +42,7 @@ public:
 
 private:
     const destructor_cb_type destructor_cb;
-    const std::string peer_address;
+    std::string peer_address;
 
     uint16_t port;
     auto_fd net_socket;
@@ -61,6 +62,18 @@ public:
      * @param port_ The bound port
      */
     tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket_fd, std::string peer_address_, uint16_t port_);
+
+    /**
+     * Construct a new TCP client using an already existing socket. This might be particulary useful if you've
+     * got a server and accept incoming connections.
+     *
+     * @brief Connect to a TCP server
+     * @param destructor_cb_ The callback that should be issued when the client closes or looses it's connection
+     * @param socket_fd A file descriptor for an already open socket to be wrapped by this client
+     * @param peer_address_ The address the socket is bound to on the other end of the connection
+     * @param port_ The bound port
+     */
+    tcp_client(const destructor_cb_type destructor_cb_, auto_fd&& socket_fd, const socketaddr& peer_address_);
 
     /**
      * Construct a new TCP client using an address and port pair.

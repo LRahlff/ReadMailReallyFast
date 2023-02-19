@@ -39,6 +39,24 @@ tcp_client::tcp_client(
 }
 
 tcp_client::tcp_client(
+    const destructor_cb_type destructor_cb_,
+    auto_fd &&socket_fd,
+    const socketaddr &peer_address_
+) :
+    connection_client{},
+    destructor_cb(destructor_cb_),
+    peer_address{peer_address_.str()},
+    port{},
+    net_socket(std::forward<auto_fd>(socket_fd)),
+    io{},
+    write_queue{}
+{
+    io.set<tcp_client, &tcp_client::cb_ev>(this);
+    io.start(this->net_socket.get(), ::ev::READ);
+    // TODO log created client
+}
+
+tcp_client::tcp_client(
     const std::string &peer_address_,
     const std::string &service_or_port,
     int ip_addr_family

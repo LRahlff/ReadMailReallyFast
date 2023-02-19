@@ -481,6 +481,13 @@ static constexpr bool is_valid_ip6addr(const char (&str)[N])
 
 }
 
+// Work around use of non-standard feature (not part of ISO-C++)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
+#ifdef __clang__
+#pragma GCC diagnostic ignored "-Wgnu-string-literal-operator-template"
+#endif
+
 template <typename CharT, CharT... Cs>
 static constexpr auto operator"" _ipaddr()
 {
@@ -512,6 +519,8 @@ static constexpr auto operator"" _ip6()
     static_assert(rmrf::net::is_valid_ip6addr(str), "Invalid IPv6 address format.");
     return rmrf::net::inet_pton<AF_INET6>(str);
 }
+
+#pragma GCC diagnostic pop
 
 static constexpr uint16_t operator "" _ipport(unsigned long long port)
 {

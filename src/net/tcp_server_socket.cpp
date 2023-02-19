@@ -45,16 +45,23 @@ tcp_server_socket::tcp_server_socket(
         throw netio_exception("Failed to create socket fd.");
     }
 
-    if (bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()) != 0) {
-        std::string msg = "Failed to bind to all addresses (FIXME)";
+    if (auto error = bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()); error != 0) {
+        std::string msg = "Failed to bind to all addresses (FIXME). Errorcode: " + std::to_string(error);
 
-        if (socket_identifier.family() == AF_INET6 || socket_identifier.family() == AF_INET) {
-            // TODO find a nice way to check for the port
-            /*
+        if (socket_identifier.family() == AF_INET6) {
+            sockaddr_in* inptr = (sockaddr_in*) socket_identifier.ptr();
+            const auto port = ntohs(inptr->sin_port);
+
             if (port < 1024) {
                 msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
             }
-            */
+        } else if (socket_identifier.family() == AF_INET) {
+            sockaddr_in6* inptr = (sockaddr_in6*) socket_identifier.ptr();
+            const auto port = ntohs(inptr->sin6_port);
+
+            if (port < 1024) {
+                msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
+            }
         }
 
         throw netio_exception(msg);

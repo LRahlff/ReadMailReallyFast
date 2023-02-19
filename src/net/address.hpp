@@ -479,6 +479,20 @@ static constexpr bool is_valid_ip6addr(const char (&str)[N])
     return details::inet6_aton(str, in6) != -1;
 }
 
+static bool is_valid_ip4addr(const std::string& str)
+{
+    struct in_addr in = {};
+
+    return ::inet_pton(AF_INET, str.c_str(), &in) != -1;
+}
+
+static bool is_valid_ip6addr(const std::string& str)
+{
+    struct in6_addr in = {};
+
+    return ::inet_pton(AF_INET6, str.c_str(), &in) != -1;
+}
+
 }
 
 // Work around use of non-standard feature (not part of ISO-C++)

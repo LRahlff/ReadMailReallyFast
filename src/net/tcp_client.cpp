@@ -14,10 +14,11 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <utility>
-#include <deque>
+#include <list>
 
 #include "net/netio_exception.hpp"
 #include "net/socketaddress.hpp"
+#include "net/sock_address_factory.hpp"
 
 namespace rmrf::net {
 
@@ -69,6 +70,12 @@ tcp_client::tcp_client(
     io{},
     write_queue{}
 {
+    std::list<socketaddr> connection_candidates = get_socketaddr_list(peer_address_, service_or_port, socket_t::TCP);
+
+    if (ip_addr_family == AF_UNSPEC) {
+        ip_addr_family = connection_candidates.front().family();
+    }
+
     if (!(ip_addr_family == AF_INET || ip_addr_family == AF_INET6)) {
         throw netio_exception("Invalid IP address family.");
     }
@@ -80,38 +87,8 @@ tcp_client::tcp_client(
         throw netio_exception("Failed to request socket fd from kernel.");
     }
 
-    // TODO Extract DNS/service resolution into separate library
     // TODO build another nice HL structure wrapper for outbound connections
-    std::deque<socketaddr> connection_candidates;
-    int status;
-    {
-        //Reduce scope of locally declared variables
-        //May be candidate for extraction into own method
-        addrinfo hints;
-        addrinfo* servinfo = nullptr;
-        memset(&hints, 0, sizeof hints);
-        hints.ai_family = ip_addr_family;
-        hints.ai_socktype = SOCK_STREAM;
-
-        if ((status = getaddrinfo(peer_address_.c_str(), service_or_port.c_str(), &hints, &servinfo)) != 0) {
-            throw netio_exception("Failed to resolve address '" + peer_address_ + "' with service '" + service_or_port + "': " + gai_strerror(status));
-        }
-
-        // TODO: Prefer IPv6 over IPv4
-        for (auto p = servinfo; p != NULL; p = p->ai_next) {
-            if (p->ai_family == AF_INET) {
-                socketaddr sa{(sockaddr_in*)p->ai_addr};
-                connection_candidates.push_back(sa);
-            } else if (p->ai_family == AF_INET6) {
-                socketaddr sa{(sockaddr_in6*)p->ai_addr};
-                connection_candidates.push_front(sa);
-            }
-        }
-
-        freeaddrinfo(servinfo);
-    }
-
-    status = 1;
+    int status = 1;
 
     do {
         if (connection_candidates.empty()) {

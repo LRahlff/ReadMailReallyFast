@@ -16,6 +16,7 @@ struct stdin_waiter : std::enable_shared_from_this<stdin_waiter>
         e_stdin.set(0, ::ev::READ);
         e_stdin.start();
     }
+
     ~stdin_waiter() {
         e_stdin.stop();
     }

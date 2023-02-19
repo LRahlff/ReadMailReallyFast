@@ -12,6 +12,7 @@ namespace rmrf::net {
     private:
         size_t offset;
         std::vector<uint8_t> data;
+
     public:
         iorecord();
         iorecord(const void *buf, size_t size);

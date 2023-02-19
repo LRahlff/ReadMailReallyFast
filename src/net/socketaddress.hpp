@@ -102,7 +102,7 @@ COMPILER_RESTORE("-Weffc++");
     }
 
     socketaddr& operator=(sockaddr *rhs) {
-        switch(rhs->sa_family) {
+        switch (rhs->sa_family) {
         case AF_INET:
             return *this = (sockaddr_in *)rhs;
         case AF_INET6:
@@ -136,7 +136,6 @@ COMPILER_RESTORE("-Weffc++");
     socklen_t size() const {
         return len;
     }
-
 };
 
 }

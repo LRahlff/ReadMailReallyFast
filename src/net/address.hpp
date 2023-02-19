@@ -17,13 +17,13 @@ static constexpr T host_to_net(T hostval)
 {
     static_assert(std::is_integral<T>::value && (sizeof(T) == 2 || sizeof(T) == 4));
 
-    if constexpr(__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) {
+    if constexpr (__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) {
         return hostval;
     }
 
-    if constexpr(sizeof(T) == 2) {
+    if constexpr (sizeof(T) == 2) {
         return __builtin_bswap16(hostval);
-    } else if constexpr(sizeof(T) == 4) {
+    } else if constexpr (sizeof(T) == 4) {
         return __builtin_bswap32(hostval);
     }
 }
@@ -87,11 +87,11 @@ static constexpr bool is_valid_digit(char c)
 {
     static_assert(base == 8 || base == 10 || base == 16, "Invalid base parameter");
 
-    if constexpr(base == 8) {
+    if constexpr (base == 8) {
         return (c >= '0' && c <= '7');
-    } else if constexpr(base == 10) {
+    } else if constexpr (base == 10) {
         return isdigit(c);
-    } else if constexpr(base == 16) {
+    } else if constexpr (base == 16) {
         return isxdigit(c);
     }
 }
@@ -450,7 +450,7 @@ static constexpr auto inet_pton(const char (&str)[N])
 {
     static_assert(AddressF == AF_INET || AddressF == AF_INET6, "Unsupported address family.");
 
-    if constexpr(AddressF == AF_INET) {
+    if constexpr (AddressF == AF_INET) {
         struct in_addr in = {};
         details::inet_aton_canonical(str, in);
 
@@ -488,7 +488,7 @@ static constexpr auto operator"" _ipaddr()
 
     static_assert(rmrf::net::is_valid_ip4addr(str) || rmrf::net::is_valid_ip6addr(str), "Invalid IP address format.");
 
-    if constexpr(rmrf::net::is_valid_ip4addr(str)) {
+    if constexpr (rmrf::net::is_valid_ip4addr(str)) {
         return rmrf::net::inet_aton(str);
     } else {
         return rmrf::net::inet_pton<AF_INET6>(str);

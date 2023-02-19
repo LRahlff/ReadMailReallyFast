@@ -11,6 +11,7 @@
 
 #include "net/connection_client.hpp"
 
+
 namespace rmrf::test {
 
 /**
@@ -20,6 +21,7 @@ class loopback_connection_client : public rmrf::net::connection_client {
 private:
 	const rmrf::net::connection_client::incomming_data_cb mut_send_data_cb;
 	std::vector<std::string> send_data_archive;
+
 public:
 	/**
 	 * This constructor uses the given callback to notify the test suite that the module under test

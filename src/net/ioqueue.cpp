@@ -4,16 +4,24 @@ namespace rmrf::net {
 
 iorecord::iorecord() : offset{}, data{} {}
 
-iorecord::iorecord(const void *buf, size_t size) :
-        offset{0}, data((const uint8_t *)buf, (const uint8_t *)buf + size) {
+iorecord::iorecord(
+    const void* buf,
+    size_t size
+) :
+    offset{0},
+    data((const uint8_t*)buf, (const uint8_t*)buf + size)
+{
     // Nothing special to do here ...
 }
+
 iorecord::iorecord(const iorecord &other) : offset{other.offset}, data{other.data} {
     // NOP
 }
 
 iorecord::iorecord(iorecord &&other) :
-        offset(other.offset), data(std::forward<std::vector<uint8_t>>(other.data)) {
+    offset(other.offset),
+    data(std::forward<std::vector<uint8_t>>(other.data))
+{
     // Nothing special to do here ...
 }
 
@@ -24,8 +32,9 @@ size_t iorecord::size() const {
 bool iorecord::empty() const {
     return !this->size();
 }
-void *iorecord::ptr() const {
-    return (void *)(this->data.data() + this->offset);
+
+void* iorecord::ptr() const {
+    return (void*)(this->data.data() + this->offset);
 }
 
 void iorecord::advance(size_t amount) {
@@ -49,6 +58,7 @@ void ioqueue::push_back(const iorecord &data) {
         this->queue.push_back(data);
     }
 }
+
 void ioqueue::push_back(iorecord &&data) {
     if (!data.empty()) {
         this->queue.emplace_back(std::forward<iorecord>(data));
@@ -60,6 +70,7 @@ void ioqueue::push_front(const iorecord &data) {
         this->queue.push_front(data);
     }
 }
+
 void ioqueue::push_front(iorecord &&data) {
     if (!data.empty()) {
         this->queue.emplace_front(std::forward<iorecord>(data));

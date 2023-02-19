@@ -8,13 +8,15 @@
 #include "netio_exception.hpp"
 
 namespace rmrf::net {
-	netio_exception::netio_exception(const std::string cause_) : cause(cause_) {
 
-	}
+netio_exception::netio_exception(const std::string cause_) :
+    cause(cause_)
+{}
 
-	const char* netio_exception::what() const throw(){
-		return this->cause.c_str();
-	}
+const char* netio_exception::what() const throw() {
+    return this->cause.c_str();
+}
+
 }
 
 

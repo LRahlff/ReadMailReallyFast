@@ -13,12 +13,13 @@
 
 namespace rmrf::net {
 
-class netio_exception: public std::exception {
+class netio_exception : public std::exception {
 private:
-	std::string cause;
+    std::string cause;
+
 public:
-	netio_exception(const std::string cause_);
-	virtual const char* what() const throw();
+    netio_exception(const std::string cause_);
+    virtual const char* what() const throw();
 };
 
 }

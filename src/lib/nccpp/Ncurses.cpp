@@ -270,11 +270,11 @@ inline short Ncurses::color_to_pair_number(Color const &color) {
     assert(!is_exit_ && "Ncurses mode is off");
 
     auto it = std::find_if(
-                  std::begin(registered_colors_),
-                  std::end(registered_colors_),
-    [color](Color const & elem) {
-        return color == elem;
-    });
+        std::begin(registered_colors_),
+        std::end(registered_colors_),
+        [color](Color const & elem) {
+            return color == elem;
+        });
 
     if (it != std::end(registered_colors_)) {
         return static_cast<short>(it - std::begin(registered_colors_) + 1);

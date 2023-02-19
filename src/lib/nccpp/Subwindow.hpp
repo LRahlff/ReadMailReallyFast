@@ -7,8 +7,13 @@ namespace nccpp {
 
 class Subwindow : public Window {
 public:
-    Subwindow(Window &parent, WINDOW* subwin, Window::Key /*dummy*/)
-        : Window{subwin}, parent_{parent}
+    Subwindow(
+        Window &parent,
+        WINDOW* subwin,
+        Window::Key /*dummy*/
+    ) :
+        Window{subwin},
+        parent_{parent}
     {}
 
     Subwindow(const Subwindow &) = delete;

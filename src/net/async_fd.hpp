@@ -4,8 +4,7 @@
 
 namespace rmrf::net {
 
-    class null_fd
-    {
+    class null_fd {
     public:
         constexpr explicit null_fd() {}
         constexpr explicit null_fd(int) {}
@@ -14,8 +13,7 @@ namespace rmrf::net {
 
     constexpr null_fd nullfd{};
 
-    class auto_fd
-    {
+    class auto_fd {
     private:
         int _fd;
 
@@ -39,8 +37,7 @@ namespace rmrf::net {
 
         inline int get() const noexcept { return _fd; }
 
-        int release() noexcept
-        {
+        int release() noexcept {
             int r(_fd);
             _fd = -1;
             return r;
@@ -67,7 +64,6 @@ namespace rmrf::net {
         inline bool valid() const {
             return _fd >= 0;
         }
-
     };
 
     inline bool operator==(const auto_fd &x, const auto_fd &y) {

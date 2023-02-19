@@ -18,9 +18,11 @@ class view : public ui_context, std::enable_shared_from_this<view> {
 private:
     std::shared_ptr<view> parent_view;
     std::list<std::shared_ptr<view>> child_views;
+
 private:
     void add_child(const std::shared_ptr<view> &child);
     void remove_child(const std::shared_ptr<view> &child);
+
 public:
     /**
      * This method will be called when an operation is taking place. It may add
@@ -41,6 +43,7 @@ public:
      * @return True if rerendering is required or otherwise false.
      */
 //    virtual bool update(const std::shared_ptr<display> &display, const std::shared_ptr<event> &event);
+
     /**
      * This method gets called when events need to be processed that do not
      * necessarily come from the UI thread.
@@ -48,12 +51,14 @@ public:
      * @param event The event that caused the update.
      */
 //    virtual void schedule_update(const std::shared_ptr<event> &event);
+
     /**
      * Use this method in order to retrieve the parent of this view.
      * @warn Keep in mind that this might be null.
      * @return The parent
      */
     std::shared_ptr<view> get_parent() const;
+
     /**
      * This constructor shall be capable of creating the view.
      *

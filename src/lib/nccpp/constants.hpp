@@ -173,37 +173,37 @@ int constexpr event{KEY_EVENT};
 namespace internal {
 
 struct ButtonRelease {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_RELEASE(event, button);
     }
 };
 
 struct ButtonPress {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_PRESS(event, button);
     }
 };
 
 struct ButtonClick {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_CLICK(event, button);
     }
 };
 
 struct ButtonDoubleClick {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_DOUBLE_CLICK(event, button);
     }
 };
 
 struct ButtonTripleClick {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_TRIPLE_CLICK(event, button);
     }
 };
 
 struct ButtonReserved {
-    mmask_t operator()(mmask_t event, unsigned char button) const    {
+    mmask_t operator()(mmask_t event, unsigned char button) const {
         return BUTTON_RESERVED_EVENT(event, button);
     }
 };

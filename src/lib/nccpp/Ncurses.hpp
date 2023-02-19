@@ -110,8 +110,7 @@ private:
  * \exception errors::NcursesInit Thrown when ncurses can't be initialized.
  * \return A reference to the singleton.
  */
-inline Ncurses &ncurses()
-{
+inline Ncurses &ncurses() {
     static Ncurses nc{};
     return nc;
 }

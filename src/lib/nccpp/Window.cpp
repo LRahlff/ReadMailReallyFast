@@ -11,49 +11,44 @@ namespace nccpp {
 inline Window::Window(WINDOW* win) :
     win_{win},
 #ifndef NDEBUG
-    win_save_ {nullptr},
+    win_save_{nullptr},
 #endif
-    subwindows_ {}
+    subwindows_{}
 {
 #ifndef NDEBUG
-
     if (win_ != stdscr) {
         ncurses().register_window_(*this, Key{});
     }
-
 #endif
 }
 
 inline Window::Window(int nlines, int ncols, int begin_y, int begin_x) :
     win_{ncurses().newwin_(nlines, ncols, begin_y, begin_x, Key{})},
 #ifndef NDEBUG
-    win_save_ {nullptr},
+    win_save_{nullptr},
 #endif
-    subwindows_ {}
+    subwindows_{}
 {
     if (!win_) {
         throw errors::WindowInit{};
     }
 
 #ifndef NDEBUG
-
     try {
         ncurses().register_window_(*this, Key{});
-    }
-    catch (...) {
+    } catch (...) {
         delwin(win_);
         throw;
     }
-
 #endif
 }
 
 inline Window::Window(Window const &cp) :
     win_{nullptr},
 #ifndef NDEBUG
-    win_save_ {nullptr},
+    win_save_{nullptr},
 #endif
-    subwindows_ {}
+    subwindows_{}
 {
     assert(!cp.win_save_ && "Can't duplicate windows while ncurses mode is off");
     subwindows_.reserve(cp.subwindows_.size());
@@ -63,15 +58,12 @@ inline Window::Window(Window const &cp) :
     }
 
 #ifndef NDEBUG
-
     try {
         ncurses().register_window_(*this, Key{});
-    }
-    catch (...) {
+    } catch (...) {
         delwin(win_);
         throw;
     }
-
 #endif
 }
 
@@ -89,13 +81,14 @@ inline Window::Window(Window &&mv)
 noexcept
 #endif
     :
-    win_ {mv.win_},
+    win_{mv.win_},
 #ifndef NDEBUG
-    win_save_ {mv.win_save_},
+    win_save_{mv.win_save_},
 #endif
-    subwindows_ {std::move(mv.subwindows_)}
+    subwindows_{std::move(mv.subwindows_)}
 {
     mv.win_ = nullptr;
+
 #ifndef NDEBUG
     mv.win_save_ = nullptr;
     ncurses().register_window_(*this, Key{});
@@ -121,11 +114,9 @@ inline Window &Window::operator=(Window &&mv) noexcept {
 
 inline Window::~Window() {
 #ifndef NDEBUG
-
     if (this != &ncurses()) {
         ncurses().unregister_window_(*this, Key{});
     }
-
 #endif
 
     destroy();
@@ -154,7 +145,6 @@ inline void Window::destroy() {
         delwin(win_save_);
         win_save_ = nullptr;
     }
-
 #endif
 }
 
@@ -191,8 +181,7 @@ inline std::size_t Window::add_subwindow(int lines, int cols, int beg_y, int beg
 
     try {
         subwindows_.emplace_back(*this, new_subw, Window::Key{});
-    }
-    catch (...) {
+    } catch (...) {
         delwin(new_subw);
         throw;
     }
@@ -255,15 +244,16 @@ inline int copywin(
     bool overlay
 ) {
     return ::copywin(
-               src.get_handle(),
-               dst.get_handle(),
-               sminrow,
-               smincol,
-               dminrow,
-               dmincol,
-               dmaxrow,
-               dmaxcol,
-               overlay);
+        src.get_handle(),
+        dst.get_handle(),
+        sminrow,
+        smincol,
+        dminrow,
+        dmincol,
+        dmaxrow,
+        dmaxcol,
+        overlay
+    );
 }
 
 } // namespace nccpp

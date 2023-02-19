@@ -2,8 +2,12 @@
 
 namespace rmrf::ui {
 
-event::event(const std::shared_ptr<ui_context> &sender) : event_sender(sender), handled(false) {
-}
+event::event(
+    const std::shared_ptr<ui_context> &sender
+) :
+    event_sender(sender),
+    handled(false)
+{}
 
 event::~event() {
 }

@@ -17,6 +17,7 @@
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 
 #include <functional>
 
@@ -71,6 +72,7 @@ tcp_server_socket::tcp_server_socket(
 
     using namespace std::placeholders;
     this->ss->set_accept_handler(std::bind(&tcp_server_socket::await_raw_socket_incomming, this, _1, _2));
+    this->set_low_latency_mode(false);
 }
 
 static inline socketaddr get_ipv6_socketaddr(const uint16_t port) {
@@ -111,6 +113,14 @@ void tcp_server_socket::await_raw_socket_incomming(
     // Generate client object from fd and announce it
     this->number_of_connected_clients++;
     using namespace std::placeholders;
+
+    if (this->is_low_latency_mode_enabled()) {
+        int one = 1;
+        setsockopt(socket.get(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+#ifdef __linux__
+        setsockopt(socket.get(), IPPROTO_TCP, TCP_QUICKACK, &one, sizeof(one));
+#endif
+    }
 
     if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
         this->client_listener(tcp_client(std::bind(&tcp_server_socket::client_destructed_cb, this, _1), auto_fd(client_fd_raw), address, port));

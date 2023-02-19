@@ -35,6 +35,7 @@ private:
     incoming_client_listener_type overflow_client_listener;
     std::atomic_uint32_t number_of_connected_clients;
     unsigned int max_number_of_simulataneusly_allowed_clients;
+    bool low_latency = false;
 
 public:
     /**
@@ -80,6 +81,24 @@ public:
      * @param max_connections The maximum number of allowed connections.
      */
     void set_maximum_concurrent_connections(unsigned int max_connections);
+
+    /**
+     * Enable TCP low latency mode. It disables Nagle's algorithm on all platforms and
+     * furthermore quickacks on linux. Please note that this will increase traffic.
+     * @brief Enable or disable TCP low latency mode.
+     * @param enabled enable or disable fast package dispatching.
+     */
+    inline void set_low_latency_mode(bool enabled) {
+        this->low_latency = enabled;
+    }
+
+    /**
+     * @brief Get the current low latency mode flag
+     * @return True if the socket is in low latency mode. Otherwise false.
+     */
+    inline bool is_low_latency_mode_enabled() {
+        return this->low_latency;
+    }
 
 private:
     void await_raw_socket_incomming(async_server_socket::self_ptr_type ass, const auto_fd& socket);

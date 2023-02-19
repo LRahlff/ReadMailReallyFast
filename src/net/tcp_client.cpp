@@ -160,11 +160,11 @@ tcp_client::tcp_client(
 {}
 
 tcp_client::~tcp_client() {
-    if (destructor_cb != nullptr) {
+    io.stop();
+
+    if (destructor_cb) {
         destructor_cb(exit_status_t::NO_ERROR);
     }
-
-    io.stop();
 }
 
 void tcp_client::write_data(const std::string &data) {

@@ -126,7 +126,13 @@ tcp_client::tcp_client(
             if (connect(socket_candidate.get(), socket_identifier.ptr(), socket_identifier.size()) == 0) {
                 status = 0;
                 this->net_socket = std::forward<auto_fd>(socket_candidate);
-                fcntl(this->net_socket.get(), F_SETFL, fcntl(this->net_socket.get(), F_GETFL, 0) | O_NONBLOCK);
+
+                if (
+                    const auto existing_fd_flags = fcntl(this->net_socket.get(), F_GETFL, 0);
+                    existing_fd_flags == -1 || fcntl(this->net_socket.get(), F_SETFL, existing_fd_flags | O_NONBLOCK) == -1
+                ) {
+                    throw netio_exception("Failed to set socket mode. fcntl resulted in error:" + std::to_string(errno));
+                }
 
                 // Hier bin ich mir nicht sicher, wie ich das am besten mache. Auch mit socketaddr und type cast ist das irgendwie doof.
                 // Das Problem besteht darin, dass erst nach erfolgreichem connect der Port auf dieser Seite bekannt ist.

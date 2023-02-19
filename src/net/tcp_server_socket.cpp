@@ -105,7 +105,13 @@ void tcp_server_socket::await_raw_socket_incomming(
         throw netio_exception("Unable to bind incoming client");
     }
 
-    fcntl(client_fd_raw, F_SETFL, fcntl(client_fd_raw, F_GETFL, 0) | O_NONBLOCK);
+    auto flags = O_NONBLOCK;
+    if (
+        const auto existing_fd_flags = fcntl(client_fd_raw, F_GETFL, 0);
+        existing_fd_flags == -1 || fcntl(client_fd_raw, F_SETFL, existing_fd_flags | flags) == -1
+    ) {
+        throw netio_exception("Failed to set socket mode. fcntl resulted in error:" + std::to_string(errno));
+    }
 
     const std::string address = inet_ntoa(client_addr.sin_addr);
     const uint16_t port = ntohs(client_addr.sin_port);

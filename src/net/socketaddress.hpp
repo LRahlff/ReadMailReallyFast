@@ -149,6 +149,31 @@ COMPILER_RESTORE("-Weffc++");
         return len;
     }
 
+    inline bool operator==(const socketaddr& _other) const {
+        if (!(this->family() == _other.family())) {
+            return false;
+        }
+
+        switch (_other.family()) {
+        case AF_INET:
+            return (((sockaddr_in*) &this->addr)->sin_addr.s_addr == ((sockaddr_in*) &_other.addr)->sin_addr.s_addr)
+                    && (((sockaddr_in*) &this->addr)->sin_port == ((sockaddr_in*) &_other.addr)->sin_port);
+        case AF_INET6:
+            return 0 == memcmp(&((sockaddr_in6*) &this->addr)->sin6_addr, &((sockaddr_in6*) &_other.addr)->sin6_addr, sizeof(in6_addr))
+                    && (((sockaddr_in6*) &this->addr)->sin6_port == ((sockaddr_in6*) &_other.addr)->sin6_port);
+        default:
+            return
+                this->len == _other.len &&
+                0 == memcmp(&this->addr, &_other.addr, this->len);
+        }
+
+        return true;
+    }
+
+    inline bool operator!=(const socketaddr& _other) const {
+        return !(*this == _other);
+    }
+
     std::string str() const {
         std::ostringstream oss;
         oss << "SocketAddress: ";

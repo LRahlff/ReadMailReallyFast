@@ -205,7 +205,8 @@ void tcp_client::cb_ev(::ev::io &w, int events) {
     if (events & ::ev::ERROR) {
         // Handle errors
         // Log and throw?
-        return;
+        io.stop();
+        throw netio_exception("TCP client error");
     }
 
     if (events & ::ev::READ) {
@@ -220,7 +221,8 @@ void tcp_client::cb_ev(::ev::io &w, int events) {
 
         if (n_read_bytes == 0) {
             // TODO find a way to properly announce the closed connection
-            delete this;
+            io.stop();
+            return;
         } else {
             this->in_data_cb(buffer_to_string(buffer, n_read_bytes));
         }

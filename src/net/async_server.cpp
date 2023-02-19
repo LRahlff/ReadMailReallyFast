@@ -53,14 +53,4 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
     }
 }
 
-inline void async_server_socket::set_accept_handler(
-    const accept_handler_type &value
-) {
-    on_accept = value;
-}
-
-inline async_server_socket::accept_handler_type async_server_socket::get_accept_handler() const {
-    return on_accept;
-}
-
 }

@@ -58,7 +58,9 @@ public:
      * @brief get the current registered accept handler
      * @return The current accept handler
      */
-    accept_handler_type get_accept_handler() const;
+    inline accept_handler_type get_accept_handler() const {
+        return on_accept;
+    }
 
     /**
      * Use this method in order to set a new incomming socket acceptance handler.
@@ -66,7 +68,9 @@ public:
      * @brief Set a new acceptance handler
      * @param value The new handler to set
      */
-    void set_accept_handler(const accept_handler_type &value);
+    inline void set_accept_handler(const accept_handler_type& value) {
+        on_accept = value;
+    }
 
 private:
     void cb_ev(::ev::io &w, int events);

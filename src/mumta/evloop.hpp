@@ -12,5 +12,6 @@ bool init_libev();
 bool init_watchdog();
 
 void loop();
+void stop();
 
 }

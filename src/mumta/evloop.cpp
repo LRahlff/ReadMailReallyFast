@@ -31,7 +31,24 @@ struct stdin_waiter : std::enable_shared_from_this<stdin_waiter>
 void rmrf::ev::loop() {
     ::ev::default_loop defloop;
 
-    auto w = std::make_shared<stdin_waiter>();
+    //auto w = std::make_shared<stdin_waiter>();
 
     defloop.run(0);
+}
+
+void stop_default_loop_cb(EV_P_ ev_async* event, int) {
+    ::ev::loop_ref defloop = ::ev::get_default_loop();
+
+    ev_async_stop(defloop, event);
+
+    defloop.break_loop();
+}
+
+void rmrf::ev::stop() {
+    ::ev::loop_ref defloop = ::ev::get_default_loop();
+    // We need to use the C API directly as ev++ does not yet support asynchrounous events
+    ev_async stop_event;
+    ev_async_init(&stop_event, stop_default_loop_cb);
+    ev_async_start(defloop, &stop_event);
+    ev_async_send(defloop, &stop_event);
 }

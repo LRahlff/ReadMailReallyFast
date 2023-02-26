@@ -13,6 +13,7 @@ std::string::size_type default_eol_search(
     const std::string &data,
     std::string::size_type start_position
 ) {
+    // TODO byte stuffing support implementieren bzw. Escaping von newline char; gerne auch als separate Suchfunktion
     const std::string::size_type s = data.size();
 
     for (std::string::size_type i = start_position; i < s; i++) {

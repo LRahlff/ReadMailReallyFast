@@ -32,7 +32,7 @@ enum class exit_status_t : uint16_t {
  * @author doralitze BenBe
  * @brief A raw TCP client.
  */
-class tcp_client : public connection_client, std::enable_shared_from_this<tcp_client> {
+class tcp_client : public connection_client<tcp_client> {
 public:
     /**
       * A callback for the destructor must match this definition.

@@ -67,7 +67,7 @@ BOOST_AUTO_TEST_CASE(Default_EoL_Search_Test) {
 BOOST_AUTO_TEST_CASE(Connection_Line_Buffer_Test) {
     mut_send_stage = 0;
     auto ll_client = std::make_shared<loopback_connection_client>(mut_send_data_cb, false);
-    connection_line_buffer clb(ll_client, next_line_cb, 150);
+    connection_line_buffer<loopback_connection_client> clb(ll_client, next_line_cb, 150);
 
     if constexpr (display_dbg_msg) std::cout << "Testing legit lines" << std::endl;
 

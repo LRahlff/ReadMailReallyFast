@@ -13,7 +13,8 @@
 
 namespace rmrf::net {
 
-class connection_client : public std::enable_shared_from_this<connection_client> {
+template<class client>
+class connection_client : public std::enable_shared_from_this<client> {
 public:
     /**
       * This function type accepts a reference to the incomming data string which it may not alter

@@ -10,9 +10,9 @@ namespace rmrf::test {
 /**
  * Use this class to mock a connection client.
  */
-class loopback_connection_client : public rmrf::net::connection_client {
+class loopback_connection_client : public rmrf::net::connection_client<loopback_connection_client> {
 private:
-    const rmrf::net::connection_client::incomming_data_cb send_data_cb;
+    const incomming_data_cb send_data_cb;
     std::vector<std::string> data_archive;
     const bool echo_data_transfer;
 
@@ -22,10 +22,10 @@ public:
      * send data.
      */
     loopback_connection_client(
-        rmrf::net::connection_client::incomming_data_cb send_data_cb_,
+        const incomming_data_cb& send_data_cb_,
         bool echo_data
     ) :
-        rmrf::net::connection_client{},
+        rmrf::net::connection_client<loopback_connection_client>{},
         send_data_cb(send_data_cb_),
         data_archive{},
         echo_data_transfer(echo_data)

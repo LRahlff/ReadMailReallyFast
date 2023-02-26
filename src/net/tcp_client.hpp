@@ -46,7 +46,7 @@ private:
     uint16_t port;
     auto_fd net_socket;
     ::ev::io io;
-    ioqueue write_queue;
+    ioqueue<iorecord> write_queue;
     bool data_write_active = false;
 
 public:

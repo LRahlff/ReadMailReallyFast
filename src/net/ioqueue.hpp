@@ -78,6 +78,14 @@ namespace rmrf::net {
             this->queue.pop_front();
             return result;
         }
+
+        std::deque<iorecord_type>::iterator begin() {
+            return this->queue.begin();
+        }
+
+        std::deque<iorecord_type>::iterator end() {
+            return this->queue.end();
+        }
     };
 
 }

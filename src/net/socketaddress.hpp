@@ -44,11 +44,13 @@ struct family_map<sockaddr_un> {
     static constexpr auto sa_family_field = &sockaddr_un::sun_family;
 };
 
+#ifdef __linux__
 template <>
 struct family_map<sockaddr_nl> {
     static constexpr int sa_family = AF_NETLINK;
     static constexpr auto sa_family_field = &sockaddr_nl::nl_family;
 };
+#endif
 
 template <typename, typename = void>
 struct has_field : std::false_type {};
@@ -121,8 +123,10 @@ COMPILER_RESTORE("-Weffc++");
             return *this = (sockaddr_in6 *)rhs;
         case AF_UNIX:
             return *this = (sockaddr_un *)rhs;
+#ifdef __linux__
         case AF_NETLINK:
             return *this = (sockaddr_nl *)rhs;
+#endif
         default:
             throw netio_exception("Trying to assign unknown address family");
         }
@@ -192,11 +196,13 @@ COMPILER_RESTORE("-Weffc++");
         case AF_UNIX:
             oss << "FileSocket " << ((sockaddr_un*)&addr)->sun_path;
             break;
+#ifdef __linux__
         case AF_NETLINK: {
             const auto nl_sock_ptr = (sockaddr_nl*) &addr;
             oss << "Netlink g:" << nl_sock_ptr->nl_groups << " p:" << nl_sock_ptr->nl_pad << " pid:" << nl_sock_ptr->nl_pid;
             break;
         }
+#endif // __linux__
         default:
             oss << "Unknown Socket Address Type";
             break;

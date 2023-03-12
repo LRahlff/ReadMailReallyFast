@@ -3,6 +3,7 @@
 #include <boost/test/included/unit_test.hpp>
 
 #include <algorithm>
+#include <array>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -10,6 +11,7 @@
 #include "loopback_connection_client.hpp"
 
 #include "net/connection_line_buffer.hpp"
+#include "net/iorecord.hpp"
 
 
 using namespace rmrf::net;
@@ -21,9 +23,13 @@ int mut_send_stage = 0;
 bool extra_failed = false;
 const bool display_dbg_msg = false;
 
-void mut_send_data_cb(const std::string& data) {
+iorecord string_to_iorecord(const std::string& s) {
+    return iorecord(s.c_str(), s.length());
+}
+
+void mut_send_data_cb(const iorecord& data) {
     std::cout << "This method should never have been called yet we've got:" << std::endl;
-    std::cout << data << std::endl;
+    std::cout << data.str() << std::endl;
     BOOST_CHECK(false);
 }
 
@@ -67,23 +73,43 @@ BOOST_AUTO_TEST_CASE(Default_EoL_Search_Test) {
 BOOST_AUTO_TEST_CASE(Connection_Line_Buffer_Test) {
     mut_send_stage = 0;
     auto ll_client = std::make_shared<loopback_connection_client>(mut_send_data_cb, false);
-    connection_line_buffer<loopback_connection_client> clb(ll_client, next_line_cb, 150);
+    connection_line_buffer clb(ll_client, next_line_cb, 150);
 
     if constexpr (display_dbg_msg) std::cout << "Testing legit lines" << std::endl;
 
-    ll_client->send_data_to_incomming_data_cb("The first");
-    ll_client->send_data_to_incomming_data_cb(" line\r");
-    ll_client->send_data_to_incomming_data_cb("The second line\r");
-    ll_client->send_data_to_incomming_data_cb("\nThe third line\n");
+    ll_client->send_data_to_incomming_data_cb(string_to_iorecord("The first"));
+    ll_client->send_data_to_incomming_data_cb(string_to_iorecord(" line\r"));
+    ll_client->send_data_to_incomming_data_cb(string_to_iorecord("The second line\r"));
+    ll_client->send_data_to_incomming_data_cb(string_to_iorecord("\nThe third line\n"));
 
     if constexpr (display_dbg_msg) std::cout << "Testing line overflow" << std::endl;
 
     for (int i = 0; i < 151; i++) {
-        ll_client->send_data_to_incomming_data_cb("a");
+        ll_client->send_data_to_incomming_data_cb(string_to_iorecord("a"));
     }
 
     BOOST_CHECK_EQUAL(mut_send_stage, 4);
     BOOST_CHECK(!extra_failed);
+}
+
+BOOST_AUTO_TEST_CASE(Iorecord_String_Collection_Test) {
+    std::array<uint8_t, 16> arr = {(uint8_t) 'a', (uint8_t) 'b', (uint8_t) 'c', 0,
+                                                              (uint8_t) 'a', 0, (uint8_t) 'b', 0,
+                                                              (uint8_t) 'a', (uint8_t) 'b', (uint8_t) 'c', (uint8_t) 'd',
+                                                              (uint8_t) 'e', (uint8_t) 'f', (uint8_t) 'g', (uint8_t) 'h'};
+    iorecord r(arr.data(), arr.size());
+    auto v = r.get_strings_in_record();
+    BOOST_CHECK_EQUAL(v.size(), 4);
+    BOOST_CHECK_EQUAL(r.potential_strings_in_record(), 4);
+    BOOST_CHECK_EQUAL(v[0], "abc");
+    BOOST_CHECK_EQUAL(v[1], "a");
+    BOOST_CHECK_EQUAL(v[2], "b");
+    BOOST_CHECK_EQUAL(v[3], "abcdefgh");
+    if constexpr (display_dbg_msg) {
+        for(size_t i = 0; i < v.size(); i++) {
+            std::cout << i << ':' << v[i] << std::endl;
+        }
+    }
 }
 
 //BOOST_AUTO_TEST_SUITE_END()

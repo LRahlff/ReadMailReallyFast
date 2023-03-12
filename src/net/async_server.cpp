@@ -17,7 +17,10 @@ async_server_socket::async_server_socket(
     auto_fd &&socket_fd
 ) :
     socket(std::forward<auto_fd>(socket_fd)),
+    number_of_connected_clients{0},
+    max_number_of_simulataneusly_allowed_clients{0},
     on_accept{},
+    on_overflow{},
     on_error{},
     io{}
 {
@@ -36,16 +39,20 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
     (void) w;
 
     if (events & ::ev::ERROR) {
-        // Handle errors
-        // Rebind socket if missed iov res else
-        // Log and throw?
+        this->on_error(this->shared_from_this());
         return;
     }
 
     if (events & ::ev::READ) {
         // Handle incoming clients
-        auto ah = this->get_accept_handler();
-        ah(this->shared_from_this(), this->socket);
+        if(auto client = this->await_raw_socket_incomming(this->socket); client) {
+            if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
+                this->number_of_connected_clients++;
+                this->get_accept_handler()(this->shared_from_this(), client);
+            } else if (this->on_overflow != nullptr) {
+                this->on_overflow(this->shared_from_this(), client);
+            }
+        }
     }
 
     if (events & ::ev::WRITE) {
@@ -53,4 +60,23 @@ void async_server_socket::cb_ev(::ev::io &w, int events) {
     }
 }
 
+void async_server_socket::client_destructed_cb(exit_status_t exit_status) {
+    MARK_UNUSED(exit_status);
+
+    this->number_of_connected_clients--;
+}
+
+connection_client::destructor_cb_type async_server_socket::get_locked_destructor_callback() {
+    const auto weak_this = this->weak_from_this();
+    const connection_client::destructor_cb_type cb = [weak_this](exit_status_t status) {
+        auto ref_this = weak_this.lock();
+
+        if (!ref_this) {
+            return;
+        }
+
+        ref_this->client_destructed_cb(status);
+    };
+    return cb;
+}
 }

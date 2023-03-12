@@ -11,10 +11,10 @@
 
 #include "mumta/evloop.hpp"
 
+#include "net/client_factory.hpp"
 #include "net/socketaddress.hpp"
 #include "net/sock_address_factory.hpp"
 #include "net/tcp_server_socket.hpp"
-#include "net/tcp_client.hpp"
 
 #include "lib/ev/ev.hpp"
 #include "mumta/evloop.hpp"
@@ -59,12 +59,12 @@ void ev_thread_callable() {
     std::cout << "Stopped ev loop." << std::endl;
 }
 
-void udp_test_cb(const udp_packet<1024>& data, socketaddr& source) {
-    BOOST_CHECK_EQUAL((char*) data.raw(), udp_test_string.c_str());
+void udp_test_cb(const iorecord& data) {
+    BOOST_CHECK_EQUAL((char*) data.ptr(), udp_test_string.c_str());
     std::stringstream msg_ss;
-    msg_ss << "Received UDP packet from: " << source.str();
+    msg_ss << "Received UDP packet from: " << data.get_address().str();
     BOOST_TEST_MESSAGE(msg_ss.str());
-    BOOST_CHECK_EQUAL(source.family(), udp_source_family);
+    BOOST_CHECK_EQUAL(data.get_address().family(), udp_source_family);
     udp_called = true;
 }
 
@@ -74,8 +74,8 @@ void run_udp_test() {
     const socketaddr source_address = get_first_general_socketaddr("127.0.0.1", 9862, socket_t::UDP);
     const socketaddr destination_address = get_first_general_socketaddr("127.0.0.1", 9863, socket_t::UDP);
 
-    auto sender = std::make_shared<udp_client<>>(source_address);
-    auto receiver = std::make_shared<udp_client<>>(destination_address, udp_test_cb);
+    auto sender = client_factory_construct_udp_client(source_address, udp_test_cb);
+    auto receiver = connect(destination_address, socket_t::UDP);
     udp_source_family = destination_address.family();
 
     udp_packet<1024> data;
@@ -93,21 +93,23 @@ void run_tcp_test(const socketaddr& interface_addr) {
     using namespace std::chrono_literals;
 
     auto server = std::make_shared<tcp_server_socket>(interface_addr,
-        [](std::shared_ptr<tcp_client> c) {
+        [](std::shared_ptr<async_server_socket> s, std::shared_ptr<connection_client> c) {
+            BOOST_REQUIRE(s);
             BOOST_REQUIRE(c);
             c->set_incomming_data_callback(
-                [c](const std::string& data) {
+                [c](const iorecord& data) {
                     c->write_data(data);
                 });
         });
 
-    auto client = std::make_shared<tcp_client>("127.0.0.1", 9861);
+    auto client = connect("127.0.0.1", "9861");
     client->set_incomming_data_callback(
-        [](const std::string& data) {
-            BOOST_CHECK_EQUAL(data, "Moin");
+        [](const iorecord& data) {
+            BOOST_CHECK_EQUAL(data.str(), "Moin");
             tcp_called = true;
         });
-    client->write_data("Moin");
+    const std::string moin_string("Moin");
+    client->write_data(iorecord(moin_string.c_str(), moin_string.length()));
 
     std::this_thread::yield();
     std::this_thread::sleep_for(100ms);

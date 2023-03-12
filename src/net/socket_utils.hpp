@@ -1,6 +1,7 @@
 #pragma once
 
 #include "net/async_fd.hpp"
+#include "net/socketaddress.hpp"
 
 namespace rmrf::net {
     /**

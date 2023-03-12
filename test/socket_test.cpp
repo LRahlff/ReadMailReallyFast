@@ -15,6 +15,7 @@
 #include "net/socketaddress.hpp"
 #include "net/sock_address_factory.hpp"
 #include "net/tcp_server_socket.hpp"
+#include "net/unix_socket_server.hpp"
 
 #include "lib/ev/ev.hpp"
 #include "mumta/evloop.hpp"
@@ -27,6 +28,7 @@ const std::string udp_test_string = "TEST UDP PACKET";
 
 volatile bool tcp_called = false;
 volatile bool udp_called = false;
+volatile bool unix_called = false;
 
 int udp_source_family;
 
@@ -118,6 +120,37 @@ void run_tcp_test(const socketaddr& interface_addr) {
     server.reset();
 }
 
+void run_unix_test() {
+    using namespace std::chrono_literals;
+    
+    const socketaddr socket_name = get_first_general_socketaddr("/tmp/9Lq7BNBnBycd6nxy.socket", "", socket_t::UNIX);
+
+    auto server = std::make_shared<unix_socket_server>(socket_name,
+        [](std::shared_ptr<async_server_socket> s, std::shared_ptr<connection_client> c) {
+            BOOST_REQUIRE(s);
+            BOOST_REQUIRE(c);
+            c->set_incomming_data_callback(
+                [c](const iorecord& data) {
+                    c->write_data(data);
+                });
+        });
+
+    auto client = connect(socket_name);
+    client->set_incomming_data_callback(
+        [](const iorecord& data) {
+            BOOST_CHECK_EQUAL(data.str(), "Moin, von UNIX");
+            unix_called = true;
+        });
+    const std::string moin_string("Moin, von UNIX");
+    client->write_data(iorecord(moin_string.c_str(), moin_string.length()));
+
+    std::this_thread::yield();
+    std::this_thread::sleep_for(100ms);
+
+    client.reset();
+    server.reset();
+}
+
 BOOST_AUTO_TEST_CASE(Netio_Socket_TCP) {
     using namespace std::chrono_literals;
 
@@ -148,4 +181,19 @@ BOOST_AUTO_TEST_CASE(Netio_Socket_UDP) {
     ev_thread.join();
 
     BOOST_CHECK(udp_called);
+}
+
+BOOST_AUTO_TEST_CASE(Netio_Socket_UNIX) {
+    using namespace std::chrono_literals;
+
+    std::thread ev_thread(ev_thread_callable);
+
+    BOOST_CHECK_NO_THROW(run_unix_test()); // TODO put in own test while keeping same ev loop setup
+
+    // Sleep one second without using ev timer
+    std::this_thread::sleep_for(500ms);
+
+    ev_thread.join();
+
+    BOOST_CHECK(unix_called);
 }

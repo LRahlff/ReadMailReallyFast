@@ -1,4 +1,4 @@
-#include "unix_socket_server.hpp"
+#include "net/unix_socket_server.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -6,6 +6,9 @@
 
 #include "net/netio_exception.hpp"
 #include "net/socket_utils.hpp"
+#include "net/tcp_client.hpp"
+
+namespace rmrf::net {
 
 auto_fd construct_server_fd(const socketaddr& addr) {
     if(addr.family() != AF_UNIX) {
@@ -13,13 +16,13 @@ auto_fd construct_server_fd(const socketaddr& addr) {
     }
 
     // man 7 unix suggests the ussage of SOCK_SEQPACKET, but we'd loose the ability to distinguish multiple clients if we do so
-    auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
+    auto_fd socket_fd{socket(addr.family(), SOCK_STREAM, 0)};
     
     if(!socket_fd.valid()) {
         throw netio_exception("Failed to create UNIX socket. Do you have the permissions to do this?");
     }
     
-    if (auto error = bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()); error != 0) {
+    if (auto error = bind(socket_fd.get(), addr.ptr(), addr.size()); error != 0) {
         throw netio_exception("Failed to bin to socket" + addr.str());
     }
     
@@ -35,12 +38,14 @@ auto_fd construct_server_fd(const socketaddr& addr) {
 unix_socket_server::unix_socket_server(
     const socketaddr& socket_identifier,
     async_server_socket::accept_handler_type client_listener_
-) : async_server_socket{construct_server_fd(socket_identifier)} {}
+) : async_server_socket{construct_server_fd(socket_identifier)} {
+    this->set_accept_handler(client_listener_);
+}
 
-unix_socket_server::~unix_socket_server() : {}
+unix_socket_server::~unix_socket_server() {}
 
-std::shared_ptr<connection_client> unix_socket_server::await_raw_socket_incomming(const auto_fd& socket) {
-    auto client_socket = auto_fd{accept(socket.get(), nullptr, nullptr)};
+std::shared_ptr<connection_client> unix_socket_server::await_raw_socket_incomming(const auto_fd& server_socket) {
+    auto client_socket = auto_fd{accept(server_socket.get(), nullptr, nullptr)};
     
     if(!client_socket.valid()) {
         throw netio_exception("Failed to accept incomming client to unix socket.");
@@ -55,4 +60,6 @@ std::shared_ptr<connection_client> unix_socket_server::await_raw_socket_incommin
         std::move(client_socket),
         own_address,
         peer_address);
+}
+
 }

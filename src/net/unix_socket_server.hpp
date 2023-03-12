@@ -1,6 +1,7 @@
 #pragma once
 
-#include "net/async_server.hpp" // Base class: rmrf::net::async_server_socket
+#include "net/async_fd.hpp"
+#include "net/async_server.hpp"
 #include "net/socketaddress.hpp"
 
 namespace rmrf::net {

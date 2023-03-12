@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <memory>
 
 #include "net/async_server.hpp"
@@ -25,16 +24,8 @@ namespace rmrf::net {
  * @file tcp_server_socket.hpp
  * @brief A TCP server delivering incomming connections to you.
  */
-class tcp_server_socket : public std::enable_shared_from_this<tcp_server_socket>{
-public:
-    typedef std::function<void(std::shared_ptr<tcp_client>)> incoming_client_listener_type;
-
+class tcp_server_socket : public async_server_socket {
 private:
-    async_server_socket::self_ptr_type ss;
-    incoming_client_listener_type client_listener;
-    incoming_client_listener_type overflow_client_listener;
-    std::atomic_uint32_t number_of_connected_clients;
-    unsigned int max_number_of_simulataneusly_allowed_clients;
     bool low_latency = false;
 
 public:
@@ -45,7 +36,7 @@ public:
      * @param port The port to bind to
      * @param client_listener_ The client listener to call when a client arrives.
      */
-    tcp_server_socket(const uint16_t port, incoming_client_listener_type client_listener_);
+    tcp_server_socket(const uint16_t port, async_server_socket::accept_handler_type client_listener_);
 
     /**
      * This constructor accepts an interface description to bind to and the client listener that should be called when clients arrive.
@@ -54,7 +45,7 @@ public:
      * @param port The port to bind to
      * @param client_listener_ The client listener to call when a client arrives.
      */
-    tcp_server_socket(const socketaddr& socket_identifier, incoming_client_listener_type client_listener_);
+    tcp_server_socket(const socketaddr& socket_identifier, async_server_socket::accept_handler_type client_listener_);
 
     /**
      * This constructor accepts an interface address and a port to bind to and the client listener that should be called when clients arrive.
@@ -64,33 +55,9 @@ public:
      * @param port The port to bind to
      * @param client_listener_ The client listener to call when a client arrives.
      */
-    tcp_server_socket(const std::string& interface_description, const uint16_t port, incoming_client_listener_type client_listener_);
-
-    /**
-     * This method provides you with the current number of connected clients. When a client
-     * disconnects this number will be reduced. When a new client arrives this number will be incremented.
-     * @brief Get the current number of connected clients.
-     * @return  The number of connected clients
-     */
-    unsigned int get_number_of_connected_clients() const;
-
-    /**
-     * This method sets the overflow handler to use if the maximum number of allowed clients was reached.
-     * The purpose of said handler is to inform the connected client that the connection cant be established
-     * due to isufficient resources. It should transmit the appropriate error message and drop the client.
-     * @brief Set the client overflow handler
-     * @param overflow_client_listener The listener that handles clients that couldn't be accepted
-     */
-    void set_client_overflow_handler(incoming_client_listener_type overflow_client_listener);
-
-    /**
-     * Use this method in order to set the maximum number of allowed connections. Set it to
-     * 0 in order to disable the limit. If anything other than 0 is set it is highly recommended
-     * to also set an overflow handler.
-     * @brief Set the maximum allowed simultaneus connections.
-     * @param max_connections The maximum number of allowed connections.
-     */
-    void set_maximum_concurrent_connections(unsigned int max_connections);
+    tcp_server_socket(const std::string& interface_description, const std::string& port, async_server_socket::accept_handler_type client_listener_);
+    
+    virtual ~tcp_server_socket() {}
 
     /**
      * Enable TCP low latency mode. It disables Nagle's algorithm on all platforms and
@@ -110,9 +77,8 @@ public:
         return this->low_latency;
     }
 
-private:
-    void await_raw_socket_incomming(async_server_socket::self_ptr_type ass, const auto_fd& socket);
-    void client_destructed_cb(exit_status_t exit_status);
+protected:
+    virtual std::shared_ptr<connection_client> await_raw_socket_incomming(const auto_fd& socket);
 };
 
 }

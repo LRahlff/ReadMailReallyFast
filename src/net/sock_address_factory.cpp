@@ -132,6 +132,29 @@ namespace rmrf::net {
             return sa;
         }
     }
+    
+    [[nodiscard]] inline int get_socket_type_hint(const socket_t& type) {
+        switch(type) {
+            default:
+            case socket_t::UNIX:
+            case socket_t::TCP:
+                return SOCK_STREAM;
+            case socket_t::UDP:
+                return SOCK_DGRAM;
+        }
+    }
+    
+    [[nodiscard]] inline int get_socket_protocol_hint(const socket_t& type) {
+        switch(type) {
+            default:
+            case socket_t::UNIX:
+                return 0;
+            case socket_t::TCP:
+                return IPPROTO_TCP;
+            case socket_t::UDP:
+                return IPPROTO_UDP;
+        }
+    }
 
     std::list<socketaddr> get_socketaddr_list(const std::string &interface_description, const std::string &service_or_port, const socket_t socket_type) {
         int port = -1;
@@ -154,10 +177,8 @@ namespace rmrf::net {
         struct addrinfo* addrs;
 
         hints.ai_family = AF_INET6;
-
-        hints.ai_socktype = socket_type == socket_t::TCP ? SOCK_STREAM : SOCK_DGRAM;
-
-        hints.ai_protocol =  socket_type == socket_t::TCP ? IPPROTO_TCP : IPPROTO_UDP;
+        hints.ai_socktype = get_socket_type_hint(socket_type);
+        hints.ai_protocol =  get_socket_protocol_hint(socket_type);
 
         if (auto dns_error = getaddrinfo(interface_description.c_str(), port == -1 ? service_or_port.c_str() : NULL, &hints, &addrs); dns_error != 0) {
             hints.ai_family = AF_UNSPEC;

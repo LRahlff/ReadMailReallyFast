@@ -22,64 +22,61 @@
 #include <functional>
 
 #include "macros.hpp"
+#include "net/client_factory.hpp"
 #include "net/socketaddress.hpp"
+#include "net/sock_address_factory.hpp"
+#include "net/socket_utils.hpp"
 #include "net/tcp_client.hpp"
 
 
 namespace rmrf::net {
+    
+    auto_fd create_tcp_server_socket(const socketaddr& socket_identifier) {
+        auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
+        
+        if (!socket_fd.valid()) {
+            // TODO implement propper error handling
+            throw netio_exception("Failed to create socket fd.");
+        }
+        
+        if (auto error = bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()); error != 0) {
+            std::string msg = "Failed to bind to all addresses (FIXME). Errorcode: " + std::to_string(error);
+
+            if (socket_identifier.family() == AF_INET6) {
+                sockaddr_in* inptr = (sockaddr_in*) socket_identifier.ptr();
+                const auto port = ntohs(inptr->sin_port);
+
+                if (port < 1024) {
+                    msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
+                }
+            } else if (socket_identifier.family() == AF_INET) {
+                sockaddr_in6* inptr = (sockaddr_in6*) socket_identifier.ptr();
+                const auto port = ntohs(inptr->sin6_port);
+
+                if (port < 1024) {
+                    msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
+                }
+            }
+
+            throw netio_exception(msg);
+        }
+        
+        make_socket_nonblocking(socket_fd);
+        
+        if (listen(socket_fd.get(), 5) == -1) {
+            throw netio_exception("Failed to enable listening mode for raw socket");
+        }
+        
+        return socket_fd;
+    }
 
 tcp_server_socket::tcp_server_socket(
-    const socketaddr &socket_identifier,
-    incoming_client_listener_type client_listener_
+    const socketaddr& socket_identifier,
+    async_server_socket::accept_handler_type client_listener
 ) :
-    ss{nullptr},
-    client_listener(client_listener_),
-    overflow_client_listener(nullptr),
-    number_of_connected_clients(0),
-    max_number_of_simulataneusly_allowed_clients(0)
+    async_server_socket(std::move(create_tcp_server_socket(socket_identifier)))
 {
-    auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
-
-    if (!socket_fd.valid()) {
-        // TODO implement propper error handling
-        throw netio_exception("Failed to create socket fd.");
-    }
-
-    if (auto error = bind(socket_fd.get(), socket_identifier.ptr(), socket_identifier.size()); error != 0) {
-        std::string msg = "Failed to bind to all addresses (FIXME). Errorcode: " + std::to_string(error);
-
-        if (socket_identifier.family() == AF_INET6) {
-            sockaddr_in* inptr = (sockaddr_in*) socket_identifier.ptr();
-            const auto port = ntohs(inptr->sin_port);
-
-            if (port < 1024) {
-                msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
-            }
-        } else if (socket_identifier.family() == AF_INET) {
-            sockaddr_in6* inptr = (sockaddr_in6*) socket_identifier.ptr();
-            const auto port = ntohs(inptr->sin6_port);
-
-            if (port < 1024) {
-                msg += "\nYou tried to bind to a port smaller than 1024. Are you root?";
-            }
-        }
-
-        throw netio_exception(msg);
-    }
-
-    // Append the non blocking flag to the file state of the socket fd.
-    // TODO This might be linux only. We should check that
-    fcntl(socket_fd.get(), F_SETFL, fcntl(socket_fd.get(), F_GETFL, 0) | O_NONBLOCK);
-
-    if (listen(socket_fd.get(), 5) == -1) {
-        throw netio_exception("Failed to enable listening mode for raw socket");
-    }
-
-    this->ss = std::make_shared<async_server_socket>(std::forward<auto_fd>(socket_fd));
-
-    using namespace std::placeholders;
-    this->ss->set_accept_handler(std::bind(&tcp_server_socket::await_raw_socket_incomming, this, _1, _2));
-    this->set_low_latency_mode(false);
+    this->set_accept_handler(client_listener);
 }
 
 static inline socketaddr get_ipv6_socketaddr(const uint16_t port) {
@@ -93,81 +90,45 @@ static inline socketaddr get_ipv6_socketaddr(const uint16_t port) {
 
 tcp_server_socket::tcp_server_socket(
     const uint16_t port,
-    incoming_client_listener_type client_listener_
+    async_server_socket::accept_handler_type client_listener_
 ) :
     tcp_server_socket{get_ipv6_socketaddr(port), client_listener_}
 {}
 
-void tcp_server_socket::await_raw_socket_incomming(
-    async_server_socket::self_ptr_type ass,
-    const auto_fd &socket
-) {
-    MARK_UNUSED(ass);
+tcp_server_socket::tcp_server_socket(
+    const std::string& interface_description,
+    const std::string& port,
+    async_server_socket::accept_handler_type client_listener_
+) : tcp_server_socket{get_first_general_socketaddr(interface_description, port, socket_t::TCP), client_listener_} {}
 
-    struct sockaddr_storage client_addr;
-    socklen_t client_len = sizeof(client_addr);
-    int client_fd_raw = accept(socket.get(), (struct sockaddr*)&client_addr, &client_len);
-    socketaddr address{client_addr};
+std::shared_ptr<connection_client> tcp_server_socket::await_raw_socket_incomming(const auto_fd& server_socket) {
+
+    struct sockaddr_storage client_addr_raw;
+    socklen_t client_len = sizeof(client_addr_raw);
+    int client_fd_raw = accept(server_socket.get(), (struct sockaddr*) &client_addr_raw, &client_len);
+    const socketaddr client_address{client_addr_raw};
 
     if (client_fd_raw < 0) {
         throw netio_exception("Unable to bind incoming client");
     }
-
-    auto flags = O_NONBLOCK;
-    if (
-        const auto existing_fd_flags = fcntl(client_fd_raw, F_GETFL, 0);
-        existing_fd_flags == -1 || fcntl(client_fd_raw, F_SETFL, existing_fd_flags | flags) == -1
-    ) {
-        throw netio_exception("Failed to set socket mode. fcntl resulted in error:" + std::to_string(errno));
-    }
-
-    // Generate client object from fd and announce it
-    this->number_of_connected_clients++;
-    using namespace std::placeholders;
+    
+    auto client_socket = auto_fd(client_fd_raw);
+    make_socket_nonblocking(client_socket);
 
     if (this->is_low_latency_mode_enabled()) {
         int one = 1;
-        setsockopt(socket.get(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
+        setsockopt(client_socket.get(), IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
 #ifdef __linux__
-        setsockopt(socket.get(), IPPROTO_TCP, TCP_QUICKACK, &one, sizeof(one));
+        setsockopt(client_socket.get(), IPPROTO_TCP, TCP_QUICKACK, &one, sizeof(one));
 #endif
     }
-
-    auto weak_this = this->weak_from_this();
-    tcp_client::destructor_cb_type cb = [weak_this](exit_status_t status) {
-        auto ref_this = weak_this.lock();
-
-        if (!ref_this) {
-            return;
-        }
-
-        ref_this->client_destructed_cb(status);
-    };
-    auto client = std::make_shared<tcp_client>(cb, auto_fd(client_fd_raw), address);
-
-    if (this->max_number_of_simulataneusly_allowed_clients == 0 || this->get_number_of_connected_clients() <= this->max_number_of_simulataneusly_allowed_clients) {
-        this->client_listener(client);
-    } else if (this->overflow_client_listener != nullptr) {
-        this->overflow_client_listener(client);
-    }
+    
+    return std::make_shared<tcp_client>(
+        this->get_locked_destructor_callback(),
+        std::move(client_socket),
+        get_own_address_after_connect(client_socket),
+        client_address);
 }
 
-unsigned int tcp_server_socket::get_number_of_connected_clients() const {
-    return this->number_of_connected_clients;
-}
-
-void tcp_server_socket::client_destructed_cb(exit_status_t exit_status) {
-    MARK_UNUSED(exit_status);
-
-    this->number_of_connected_clients--;
-}
-
-void tcp_server_socket::set_client_overflow_handler(incoming_client_listener_type overflow_client_listener_) {
-    this->overflow_client_listener = overflow_client_listener_;
-}
-
-void tcp_server_socket::set_maximum_concurrent_connections(unsigned int max_connections) {
-    this->max_number_of_simulataneusly_allowed_clients = max_connections;
-}
 
 }

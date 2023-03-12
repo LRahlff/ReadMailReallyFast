@@ -124,6 +124,13 @@ namespace rmrf::net {
         inline bool valid() const {
             return _fd >= 0;
         }
+        
+        /**
+         * @brief This is a shortcut to calling fd.valid()
+         */
+        inline operator bool() const {
+            return this->valid();
+        }
     };
 
     inline bool operator==(const auto_fd &x, const auto_fd &y) {

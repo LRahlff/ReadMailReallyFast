@@ -11,7 +11,8 @@ namespace rmrf::net {
 
     enum class socket_t {
         UDP,
-        TCP
+        TCP,
+        UNIX
     };
 
     /**
@@ -45,5 +46,5 @@ namespace rmrf::net {
      * @param socket_type Optional. The socket type to perform the lookup for. Defaults to TCP.
      * @return The constructed unordered list
      */
-    std::list<socketaddr> get_socketaddr_list(const std::string& interface_description, const std::string& service_or_port, const socket_t socket_type);
+    std::list<socketaddr> get_socketaddr_list(const std::string& interface_description, const std::string& service_or_port, const socket_t socket_type = socket_t::TCP);
 }

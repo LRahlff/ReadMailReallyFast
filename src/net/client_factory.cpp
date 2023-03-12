@@ -41,6 +41,7 @@ namespace rmrf::net {
     [[nodiscard]] std::unique_ptr<udp_client> client_factory_construct_udp_client(const socketaddr& socket_identifier, connection_client::incomming_data_cb cb) {
         const auto family = socket_identifier.family();
 
+        // TODO maybe implement also unix sockets with SOCK_SEQPACKET if we need them
         if (!(family == AF_INET || family == AF_INET6)) {
             std::stringstream ss;
             ss << "Invalid IP address family. (" <<  family << ")";

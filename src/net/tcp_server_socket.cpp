@@ -32,6 +32,10 @@
 namespace rmrf::net {
     
     auto_fd create_tcp_server_socket(const socketaddr& socket_identifier) {
+        if (auto f = socket_identifier.family(); f != AF_INET6 && f != AF_INET) {
+            throw netio_exception("For now, TCP is only supported over IP(v6).");
+        }
+        
         auto_fd socket_fd{socket(socket_identifier.family(), SOCK_STREAM, 0)};
         
         if (!socket_fd.valid()) {
@@ -63,7 +67,7 @@ namespace rmrf::net {
         
         make_socket_nonblocking(socket_fd);
         
-        if (listen(socket_fd.get(), 5) == -1) {
+        if (listen(socket_fd.get(), 20) == -1) {
             throw netio_exception("Failed to enable listening mode for raw socket");
         }
         

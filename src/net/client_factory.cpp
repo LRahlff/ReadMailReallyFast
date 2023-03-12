@@ -13,31 +13,6 @@
 
 namespace rmrf::net {
     
-    [[nodiscard]] socketaddr get_own_address_after_connect(const auto_fd& socket) {
-        socketaddr own_address;
-        socklen_t sa_local_len = sizeof(sockaddr_storage);
-
-        if (getsockname(socket.get(), own_address.ptr(), &sa_local_len) == 0) {
-            // Update length field after the internal structure was modified
-            // TODO: Maybe make this an internal method in socketaddr to update the size
-            own_address = own_address.ptr();
-        } else {
-            switch(errno) {
-                case EBADF:
-                case ENOTSOCK:
-                    throw netio_exception("Invalid file descriptor provided to obtain own address. ERRNO: " + std::to_string(errno));
-                case EFAULT:
-                case EINVAL:
-                    throw netio_exception("Invlid data structure for information retrival of own socket address provided. ERRNO: " + std::to_string(errno));
-                case ENOBUFS:
-                    throw netio_exception("Kernel temporarily out of buffer space to store own address informatio.n ERRNO:." + std::to_string(errno));
-                default:
-                    throw netio_exception("Unexpected error while requesting own socket address. ERRNO: " + std::to_string(errno));
-            }
-        }
-        return own_address;
-    }
-    
     [[nodiscard]] std::unique_ptr<udp_client> client_factory_construct_udp_client(const socketaddr& socket_identifier, connection_client::incomming_data_cb cb) {
         const auto family = socket_identifier.family();
 
@@ -63,13 +38,13 @@ namespace rmrf::net {
         return c;
     }
     
-    [[nodiscard]] std::unique_ptr<tcp_client> client_factory_construct_tcp_client(const socketaddr& socket_identifier, connection_client::incomming_data_cb cb) {
+    [[nodiscard]] std::unique_ptr<tcp_client> client_factory_construct_stream_client(const socketaddr& socket_identifier, connection_client::incomming_data_cb cb) {
         auto_fd socket_candidate{socket(socket_identifier.family(), SOCK_STREAM, 0)};
         
         if (socket_candidate.valid()) {
             if (connect(socket_candidate.get(), socket_identifier.ptr(), socket_identifier.size()) == 0) {
                 make_socket_nonblocking(socket_candidate);
-                const auto own_address = get_own_address_after_connect(socket_candidate);
+                const auto own_address = socket_identifier.family() != AF_UNIX ? get_own_address_after_connect(socket_candidate) : socketaddr{};
                 
                 // TODO create client object using socket_candidate, own_address and socket_identifier as remote address
                 auto c = std::make_unique<tcp_client>(nullptr, std::move(socket_candidate), own_address, socket_identifier);
@@ -85,12 +60,10 @@ namespace rmrf::net {
     [[nodiscard]] std::unique_ptr<connection_client> connect(const socketaddr& address, const socket_t& type) {
         switch(type) {
             case socket_t::TCP:
-                return client_factory_construct_tcp_client(address);
+            case socket_t::UNIX:
+                return client_factory_construct_stream_client(address);
             case socket_t::UDP:
                 return client_factory_construct_udp_client(address);
-            case socket_t::UNIX:
-                // TODO implement
-                return nullptr;
             default:
                 return nullptr;
         }

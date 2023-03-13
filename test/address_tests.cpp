@@ -62,3 +62,8 @@ BOOST_AUTO_TEST_CASE(Socketaddr_comparison) {
     BOOST_CHECK_NE(get_first_general_socketaddr("[::1]", "443"), get_first_general_socketaddr("::1", "80"));
     BOOST_CHECK_EQUAL(get_first_general_socketaddr("[::1]", "443"), get_first_general_socketaddr("::1", "443"));
 }
+
+BOOST_AUTO_TEST_CASE(Unix_socket_construction_test) {
+    const auto sa = get_first_general_socketaddr("/tmp/9Lq7BNBnBycd6nxy.socket", "", socket_t::UNIX);
+    BOOST_CHECK_EQUAL(sa.str(), "FileSocket /tmp/9Lq7BNBnBycd6nxy.socket");
+}

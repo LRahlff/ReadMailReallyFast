@@ -70,7 +70,7 @@ public:
     template <typename T, typename std::enable_if<has_field<T>::value, T>::type * = nullptr>
     explicit socketaddr(T *other) : addr{}, len{} {
         if (other->*(family_map<T>::sa_family_field) != family_map<T>::sa_family) {
-            throw netio_exception("Address family mismatch in sockaddr structure.");
+            throw netio_exception("Unable to construct socketaddr object. Address family mismatch in sockaddr structure.");
         }
 
         memcpy(&addr, other, sizeof(T));
@@ -88,7 +88,7 @@ public:
     template <typename T, typename std::enable_if<has_field<T>::value, T>::type * = nullptr>
     explicit socketaddr(const T& other) : addr{}, len{} {
         if (other.*(family_map<T>::sa_family_field) != family_map<T>::sa_family) {
-            throw netio_exception("Address family mismatch in sockaddr structure.");
+            throw netio_exception("Unable to construct socketaddr object from reference. Address family mismatch in sockaddr structure.");
         }
 
         memcpy(&addr, &other, sizeof(T));
@@ -98,7 +98,7 @@ public:
     template <typename T>
     socketaddr& operator=(const T *rhs) {
         if (rhs->*(family_map<T>::sa_family_field) != family_map<T>::sa_family) {
-            throw netio_exception("Address family mismatch in sockaddr structure.");
+            throw netio_exception("Unable to construct socketaddr object from rhs. Address family mismatch in sockaddr structure.");
         }
 
         memcpy(&addr, rhs, sizeof(T));

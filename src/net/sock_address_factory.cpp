@@ -157,6 +157,14 @@ namespace rmrf::net {
     }
 
     std::list<socketaddr> get_socketaddr_list(const std::string &interface_description, const std::string &service_or_port, const socket_t socket_type) {
+        
+        if (socket_type == socket_t::UNIX) {
+            sockaddr_un storage;
+            strncpy(storage.sun_path, interface_description.c_str(), sizeof(storage.sun_path));
+            std::list<socketaddr> l = {socketaddr{storage}};
+            return l;
+        }
+        
         int port = -1;
 
         try {
@@ -172,9 +180,9 @@ namespace rmrf::net {
             return l;
         }
 
+        // Attempt DNS lookup
         struct addrinfo hints = {};
-
-        struct addrinfo* addrs;
+        struct addrinfo* addrs = nullptr;
 
         hints.ai_family = AF_INET6;
         hints.ai_socktype = get_socket_type_hint(socket_type);
@@ -185,8 +193,10 @@ namespace rmrf::net {
             dns_error = getaddrinfo(interface_description.c_str(), NULL, &hints, &addrs);
 
             if (dns_error != 0) {
-                freeaddrinfo(addrs);
-                throw std::invalid_argument("Something went wrong with the DNS lookup. Error code: " + format_network_error(dns_error));
+                if(addrs != nullptr) {
+                    freeaddrinfo(addrs);
+                }
+                throw std::invalid_argument("Something went wrong with the DNS lookup. Error:" + format_network_error(dns_error));
             }
         }
 

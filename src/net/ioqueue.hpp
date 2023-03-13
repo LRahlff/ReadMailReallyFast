@@ -3,29 +3,13 @@
 #include <algorithm>
 #include <cstdint>
 #include <deque>
+#include <string>
 #include <utility>
 #include <vector>
 
+#include "net/iorecord.hpp"
+
 namespace rmrf::net {
-
-    class iorecord {
-    private:
-        size_t offset;
-        std::vector<uint8_t> data;
-
-    public:
-        iorecord();
-        iorecord(const void *buf, size_t size);
-        iorecord(const iorecord &other);
-        iorecord(iorecord &&other);
-
-    public:
-        size_t size() const;
-        bool empty() const;
-        void *ptr() const;
-
-        void advance(size_t amount);
-    };
 
     template<class iorecord_type = iorecord>
     class ioqueue {
@@ -51,7 +35,8 @@ namespace rmrf::net {
                 this->queue.push_back(data);
             }
         }
-        void push_back(iorecord_type &&data) {
+        
+        void push_back(iorecord_type&& data) {
             if (!data.empty()) {
                 this->queue.emplace_back(std::forward<iorecord_type>(data));
             }

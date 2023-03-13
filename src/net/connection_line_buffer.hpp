@@ -59,7 +59,6 @@ std::string::size_type default_eol_search(const std::string& data, std::string::
  * @see rmrf::net::default_eol_search
  * @see rmrf::net::eol_search_t
  */
-template<class client_type>
 class connection_line_buffer {
 public:
     /**
@@ -74,7 +73,7 @@ public:
 
 private:
     const eol_search_t search;
-    std::shared_ptr<connection_client<client_type>> client;
+    std::shared_ptr<connection_client> client;
     found_next_line_cb_t found_next_line_cb;
     std::string::size_type max;
     std::ostringstream data_buffer;
@@ -89,7 +88,7 @@ public:
      * @param max_line_size The maximum line length to aquire prior to collection abort and transmission of the incomplete line
      * @param search_lb The callback to use for line break detection
      */
-    connection_line_buffer(std::shared_ptr<connection_client<client_type>> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size, eol_search_t search_lb);
+    connection_line_buffer(std::shared_ptr<connection_client> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size, eol_search_t search_lb);
 
     /**
      * This constructor creates a new buffer based on a given client, an input callback and the maximum line size.
@@ -99,81 +98,11 @@ public:
      * @param found_next_line_cb_ The callback to be called when a complete new line arrived
      * @param max_line_size The maximum line length to aquire prior to collection abort and transmission of the incomplete line
      */
-    connection_line_buffer(std::shared_ptr<connection_client<client_type>> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size);
+    connection_line_buffer(std::shared_ptr<connection_client> c, found_next_line_cb_t found_next_line_cb_, std::string::size_type max_line_size);
 
 private:
-    void conn_data_in_cb(const std::string& data_in);
+    void conn_data_in_cb(const iorecord& data_in);
     void clear();
 };
-
-template <class client_type>
-connection_line_buffer<client_type>::connection_line_buffer(
-    std::shared_ptr<connection_client<client_type>> c,
-    found_next_line_cb_t found_next_line_cb_,
-    std::string::size_type max_line_size,
-    eol_search_t search_lb
-) :
-    search(search_lb),
-    client(c),
-    found_next_line_cb(found_next_line_cb_),
-    max(max_line_size),
-    data_buffer(std::ostringstream::ate),
-    buffer_length{0}
-{
-    this->client->set_incomming_data_callback(
-        [this](const std::string& data_in) {
-            conn_data_in_cb(data_in);
-        });
-}
-
-template <class client_type>
-connection_line_buffer<client_type>::connection_line_buffer(
-    std::shared_ptr<connection_client<client_type>> c,
-    found_next_line_cb_t found_next_line_cb_,
-    std::string::size_type max_line_size
-) :
-    connection_line_buffer{c, found_next_line_cb_, max_line_size, &default_eol_search}
-{}
-
-template <class client_type>
-void connection_line_buffer<client_type>::clear() {
-    this->data_buffer.str(std::string());
-    this->data_buffer.clear();
-    this->buffer_length = 0;
-}
-
-template <class client_type>
-void connection_line_buffer<client_type>::conn_data_in_cb(const std::string& data_in) {
-
-    // Iterate throug the incomming data as long as we find line breaks
-    for (std::string::size_type strpos = 0, nextpos = -1; strpos != std::string::npos; strpos = nextpos++) {
-        // Search for the next line break
-        nextpos = this->search(data_in, strpos);
-
-        // Advance, if the line would be empty
-        if (nextpos == strpos) {
-            nextpos = this->search(data_in, ++strpos);
-        }
-
-        if (nextpos == std::string::npos) {
-            // If we didn't find one we store the remaining data in the buffer
-            const auto length = data_in.length() - strpos;
-            this->data_buffer << data_in.substr(strpos, length);
-            this->buffer_length += length;
-            break;
-        } else {
-            // If we find one we send the buffer plus the incomming data up to the line break to the callback
-            const std::string data_to_send = this->data_buffer.str() + data_in.substr(strpos, nextpos - strpos);
-            this->found_next_line_cb(data_to_send, true);
-            // and clear the buffer
-            this->clear();
-        }
-    }
-
-    if (this->buffer_length > this->max) {
-        this->found_next_line_cb(this->data_buffer.str(), false);
-        this->clear();
-    }
-}
 
 }

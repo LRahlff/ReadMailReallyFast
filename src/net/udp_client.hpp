@@ -46,11 +46,13 @@ public:
 
     /**
      * This method copies the content of data on the write queue and schedules its transmission to destination.
+     * It needs to know the packet size of the udp packet, provided by the template.
      * @brief Send a udp packet
      * @param destination The destination to send it to
      * @param data The data to be send
      */
-    void send_packet(const socketaddr& destination, const udp_packet<>& data) {
+    template<size_t packet_size>
+    inline void send_packet(const socketaddr& destination, const udp_packet<packet_size>& data) {
         this->write_data(std::forward<iorecord>(iorecord{data.raw(), data.size(), destination}));
     }
 

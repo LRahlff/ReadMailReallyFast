@@ -49,6 +49,7 @@ protected:
     auto_fd net_socket;
 private:
     ::ev::io io;
+    ::ev::async async;
     ioqueue<iorecord> write_queue;
     const destructor_cb_type destructor_cb;
     bool server_active = false;
@@ -73,10 +74,12 @@ public:
      * @param peer_address_ The remote address the client is connected to
      */
     connection_client(auto_fd&& socket_fd, const socketaddr& peer_address_, const destructor_cb_type destructor_cb_) :
-        net_socket(std::forward<auto_fd>(socket_fd)), io{}, write_queue{}, destructor_cb{destructor_cb_},
+        net_socket(std::forward<auto_fd>(socket_fd)), io{}, async{}, write_queue{}, destructor_cb{destructor_cb_},
         in_data_cb{}, own_address{}, peer_address{peer_address_}
     {
         if(this->net_socket) {
+            async.set<connection_client, &connection_client::cb_async>(this);
+            async.start();
             io.set<connection_client, &connection_client::cb_ev>(this);
             io.start(this->net_socket.get(), 0);
             this->server_active = true;
@@ -93,7 +96,7 @@ public:
     inline virtual void write_data(const iorecord& data) {
         // Create NICBuffer from data
         this->write_queue.push_back(data);
-        this->io.set(::ev::READ | ::ev::WRITE);
+        this->async.send();
     }
     
     /**
@@ -106,9 +109,9 @@ public:
      */
     inline void write_data(iorecord&& data) {
         this->write_queue.push_back(std::forward<iorecord>(data));
-        this->io.set(::ev::READ | ::ev::WRITE);
+        this->async.send();
     }
-    
+
    /**
      * This method sends data over the socket. Keep in mind that this method only enqueues the
      * data and requests it's transmission but does not send the data directly. While this ensures
@@ -188,6 +191,8 @@ private:
      * @param events The event flag container
      */
     void cb_ev(::ev::io& w, int events);
+
+    void cb_async(::ev::async& w, int events);
     
     inline void set_new_flags() {
         auto new_flags = 0;
@@ -202,4 +207,3 @@ private:
 };
 
 }
-

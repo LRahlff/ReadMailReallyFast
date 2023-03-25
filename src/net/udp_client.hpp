@@ -77,14 +77,19 @@ public:
      * device handling the send packet shall report if the path was viable or not. This
      * is useful for debugging but may negatively impact performance.
      * @brief Enable or disable UDP confirm mode
+     * @note This is only enabled if MSG_CONFIRM is enabled on your platform.
      * @param enabled If set to true the UDP confirm mode will be activated.
      */
     void enable_confirm_mode(bool enabled) {
+#ifdef MSG_CONFIRM
         if (enabled) {
             this->send_flags |= MSG_CONFIRM;
         } else {
             this->send_flags &= ~MSG_CONFIRM;
         }
+#else
+	MARK_UNUSED(enabled);
+#endif
     };
     
 protected:

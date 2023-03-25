@@ -71,19 +71,19 @@ public:
         return this->arr.data();
     }
 
-    constexpr std::array<uint8_t, pkg_size>::iterator begin() noexcept {
+    constexpr typename std::array<uint8_t, pkg_size>::iterator begin() noexcept {
         return this->arr.begin();
     }
 
-    constexpr std::array<uint8_t, pkg_size>::iterator end() noexcept {
+    constexpr typename std::array<uint8_t, pkg_size>::iterator end() noexcept {
         return this->arr.end();
     }
 
-    constexpr std::array<uint8_t, pkg_size>::const_iterator cbegin() const noexcept {
+    constexpr typename std::array<uint8_t, pkg_size>::const_iterator cbegin() const noexcept {
         return this->arr.cbegin();
     }
 
-    constexpr std::array<uint8_t, pkg_size>::const_iterator cend() const noexcept {
+    constexpr typename std::array<uint8_t, pkg_size>::const_iterator cend() const noexcept {
         return this->arr.cend();
     }
 

@@ -19,8 +19,10 @@ namespace rmrf::net {
 
     std::string format_network_error(int error) {
         switch (error) {
+#ifdef __linux__
         case EAI_ADDRFAMILY:
             return "There was no compatible address for the requested families. (EAI_ADDRFAMILY)";
+#endif
         case EAI_AGAIN:
             return "The consulted DNS server reported a temporary lookup failure. Try again later. (EAI_AGAIN)";
         case EAI_BADFLAGS:
@@ -31,8 +33,10 @@ namespace rmrf::net {
             return "The required protocol family is not supported by this host. (EAI_FAMILY)";
         case EAI_MEMORY:
             return "Out of Memory while performing DNS lookup. (EAI_MEMORY)";
+#ifdef __linux__
         case EAI_NODATA:
             return "The requested DNS entry does not contain an A or AAAA entry. (EAI_NODATA)";
+#endif
         case EAI_NONAME:
             return "There was no matching nodename, service tuple. (EAI_NONAME)";
         case EAI_SERVICE:
@@ -42,6 +46,7 @@ namespace rmrf::net {
         default:
             return std::to_string(error);
         }
+	// TODO implement EAI_OVERFLOW, EAI_PROTOCOL, EAI_BADHINTS, EAI_SYSTEM (*BSD specific)
     }
 
     bool decode_address(std::list<socketaddr> &l, addrinfo* looked_up_addrs, const int port) {

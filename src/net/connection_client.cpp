@@ -11,8 +11,12 @@
 namespace rmrf::net {
     
     connection_client::~connection_client() {
-        if(this->server_active)
+        async.stop();
+
+        if (this->server_active) {
             io.stop();
+        }
+
         if (destructor_cb) {
             destructor_cb(exit_status_t::NO_ERROR);
         }
@@ -59,15 +63,22 @@ namespace rmrf::net {
         this->server_active = false;
         io.stop();
     }
-    
-    void connection_client::set_incomming_data_callback(const incomming_data_cb& cb) {
+
+    void connection_client::set_incomming_data_callback(const incomming_data_cb &cb) {
         this->in_data_cb = cb;
-        set_new_flags();
+        this->async.send();
     }
-    
+
     void connection_client::set_rate_limit(unsigned int new_limit) {
         this->rate_limit = new_limit;
         // TODO start timer if new limit is not no_rate_limit
         // TODO stop timer if timer exists and new limit is no_rate_limit
     }
+
+    void connection_client::cb_async(::ev::async &w, int events) {
+        MARK_UNUSED(w);
+        MARK_UNUSED(events);
+        set_new_flags();
+    }
+
 }
